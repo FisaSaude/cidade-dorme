@@ -1,50 +1,66 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- Sync Impact Report
+Version change: — → 1.0.0 (initial constitution)
+Modified principles: none (new document)
+Added sections: Core Principles (Princípios I–V), Restrições, Evolução do Projeto, Governance
+Removed sections: none
+Follow-up TODOs: none
+-->
+
+# Cidade Dorme Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Arquitetura e Organização
+- Organizar o código seguindo Feature-Sliced Design (FSD), agrupando funcionalidades por domínio de negócio (features) em camadas bem definidas.
+- Adotar MVVM para separar a interface (View), o estado (ViewModel) e a lógica de apresentação (Model).
+- Manter as regras de negócio independentes da interface e da camada de persistência.
+- Evitar abstrações e camadas desnecessárias; adicionar apenas quando houver justificativa clara.
+- Priorizar componentes reutilizáveis apenas quando houver justificativa de reuso real.
+Rationale: separar preocupações por domínio facilita a manutenção e a testabilidade das regras de negócio do jogo.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Tecnologias e Padrões
+- Utilizar React com JavaScript; TypeScript não é permitido.
+- Preservar a configuração e os recursos existentes do Vite.
+- Utilizar JSON Server como mecanismo de persistência simulada.
+- Nomear variáveis, funções, componentes e identificadores em inglês.
+- Manter documentação, especificações e demais documentos do projeto em português brasileiro.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Qualidade de Código
+- Priorizar código simples, legível e de fácil manutenção.
+- Aplicar responsabilidade única e baixo acoplamento.
+- Evitar duplicação de lógica.
+- Utilizar tratamento adequado de erros.
+- Não introduzir dependências sem necessidade justificada.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Interface e Experiência
+- Adotar identidade visual dark / sombria, coerente com a temática de mistério do jogo.
+- Priorizar atmosfera imersiva com animações, transições e elementos visuais dramáticos quando apropriado.
+- Garantir boa legibilidade, hierarquia visual e facilidade de utilização pelo narrador.
+- Utilizar pop-ups e sobreposições para momentos especiais da experiência.
+- Garantir que a interface continue funcional e compreensível mesmo sem animações.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Testes e Confiabilidade
+- Definir padrões para testes de regras de negócio e comportamentos relevantes.
+- Priorizar testes para regras que possam alterar o resultado de uma partida.
+- Evitar dependência da interface para validar regras de negócio.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Restrições
+- Não utilizar TypeScript.
+- Não implementar autenticação ou sistema de login.
+- Não implementar sorteio automático de papéis.
+- Não antecipar requisitos específicos das funcionalidades nas regras gerais desta Constituição.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Evolução do Projeto
+- Preservar decisões arquiteturais e padrões estabelecidos.
+- Evitar refatorações amplas sem justificativa.
+- Toda alteração relevante deverá respeitar os princípios definidos nesta Constituição.
+- Mudanças de arquitetura ou de escopo deverão ser justificadas e validadas.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+- Esta Constituição prevalece sobre todas as demais práticas de desenvolvimento do projeto.
+- Alterações nesta Constituição devem ser documentadas, aprovadas e acompanhadas de plano de migração quando aplicável.
+- Todas as pull requests e revisões devem verificar o cumprimento dos princípios definidos.
+- Qualquer desvio dos princípios deve ser justificado.
+- O documento deve ser revisado periodicamente para garantir conformidade com a evolução do projeto.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-11-14 | **Last Amended**: 2026-11-14
