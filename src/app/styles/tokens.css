@@ -1,0 +1,51 @@
+:root {
+  color-scheme: dark;
+
+  --color-bg: #0b0b10;
+  --color-bg-elevated: #14141c;
+  --color-surface: #1a1a24;
+  --color-surface-alt: #20202c;
+  --color-border: #2e2e3d;
+  --color-border-strong: #45455a;
+
+  --color-text: #e8e3d8;
+  --color-text-muted: #a49f95;
+  --color-heading: #f4efe4;
+
+  --color-accent: #a01f2e;
+  --color-accent-strong: #c5303f;
+  --color-accent-soft: rgba(160, 31, 46, 0.18);
+
+  --color-success: #2f7d5b;
+  --color-warning: #b8862b;
+  --color-error: #c04040;
+  --color-info: #3a6ea5;
+
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, Consolas, 'Courier New', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+
+  --focus-ring: 0 0 0 3px rgba(197, 48, 63, 0.65);
+
+  --z-overlay: 1000;
+  --z-dialog: 1100;
+
+  --transition-fast: 150ms ease;
+  --transition-slow: 400ms ease;
+}
