@@ -54,7 +54,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - [ ] T012 [P] Implementar `src/shared/ui/Alert.jsx`, `src/shared/ui/EmptyState.jsx`, `src/shared/ui/LoadingState.jsx` e `src/shared/ui/ConfirmDialog.jsx` com semântica ARIA, ações de confirmar/cancelar e sem conhecimento do domínio.
 - [ ] T013 Implementar `src/app/styles/tokens.css`, `src/app/styles/global.css` e `src/app/styles/animations.css` com tokens dark/sombrios, tipografia serifada para títulos, foco visível, vinheta/névoa em CSS e `prefers-reduced-motion`; validar com `npm run build`.
 - [ ] T014 Implementar `src/app/navigation/screens.js` e `src/app/navigation/useAppNavigation.js` com tela ativa, parâmetros simples e bloqueio de nova partida quando houver sessão ativa; cobrir com `tests/unit/useAppNavigation.test.jsx`.
-- [ ] T015 Substituir o conteúdo de demonstração: criar `src/app/App.jsx` com shell, cabeçalho e tela ativa; atualizar `src/main.jsx` e `index.html`; remover `src/App.css`, `src/index.css` e assets de demo não usados; validar com `npm run build`.
+- [ ] T015 Substituir o conteúdo de demonstração: criar `src/app/App.jsx` com shell, cabeçalho e tela ativa; atualizar `src/main.jsx` e `index.html`; remover apenas `src/App.css`, `src/index.css` e assets de demo não reaproveitados, preservando `vite.config.js` e `public/`; validar com `npm run build`.
 - [ ] T016 [P] Implementar `src/entities/match-participant/model/playerRole.js` e `src/entities/match-participant/model/playerStatus.js` como enums congelados exatamente com `INNOCENT`, `ASSASSIN`, `DETECTIVE` e `ALIVE`, `DEAD`.
 - [ ] T017 [P] Implementar `src/entities/match-participant/model/matchParticipant.js` com factory que cria `{ id, participantId, role, status: "ALIVE", eliminatedAt: null }` e helpers de eliminação; cobrir com `tests/unit/matchParticipant.test.js` as invariantes: `status = DEAD` se e somente se `eliminatedAt` não for `null`; papel imutável; `eliminatedAt = { turn: integer >= 1, phase: "NIGHT" | "VOTE" }`.
 - [ ] T018 [P] Implementar `src/entities/match/model/matchPhases.js` com `MatchPhase` e `EliminationPhase` congelados e o mapa de transições de sobreposição; cobrir com `tests/unit/matchPhases.test.js` as transições permitidas e `INVALID_PHASE`.
@@ -90,7 +90,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - [ ] T032 [US1] Implementar `src/pages/participants/useParticipantsViewModel.js` com `useAsyncData`, estado do formulário, criação, edição, bloqueio de duplicado/obrigatório, mensagens pt-BR e recarga da lista.
 - [ ] T033 [US1] Implementar `src/pages/participants/ParticipantsPage.jsx` compondo tabela, formulário, alertas e estado vazio; a View apenas renderiza `viewState` e despacha `actions`.
 - [ ] T034 [US1] Estender `src/app/providers/AppProviders.jsx` com `participantRepository` e integrar `ParticipantsPage` ao shell/navegação em `src/app/App.jsx`.
-- [ ] T035 [US1] Escrever `tests/integration/participants.test.jsx` cobrindo estado vazio, criação, edição, bloqueio de duplicado com mensagem e manutenção do mesmo ID após edição, usando repositório falso.
+- [ ] T035 [US1] Escrever `tests/integration/participants.test.jsx` cobrindo estado vazio, criação, edição, bloqueio de duplicado com mensagem e manutenção do mesmo ID após edição, usando repositório falso; incluir preservação do vínculo de um participante usado em duas partidas finalizadas distintas.
 
 **Checkpoint**: US1 funcional e testável sem depender de partidas.
 
@@ -105,7 +105,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 ### Tests for User Story 2
 
 - [ ] T036 [P] [US2] Escrever `tests/unit/matchConfiguration.test.js` cobrindo `MIN_PARTICIPANTS` para menos de cinco, `NO_ASSASSIN`, `DUPLICATE_PARTICIPANT`, `INVALID_ROLE`, papel ausente normalizado para `INNOCENT` e um único papel por `participantId`.
-- [ ] T037 [P] [US2] Escrever `tests/unit/matchEngine.create.test.js` cobrindo a sessão inicial com `phase = TURN_START`, `currentTurn = 1`, `turnCount = 0`, `status = IN_PROGRESS`, todos `ALIVE` com `eliminatedAt: null`, `MatchParticipant.id` únicos e rejeição de configurações inválidas pelos códigos do contrato.
+- [ ] T037 [P] [US2] Escrever `tests/unit/matchEngine.create.test.js` cobrindo a sessão inicial com `phase = TURN_START`, `currentTurn = 1`, `turnCount = 0`, `status = IN_PROGRESS`, todos `ALIVE` com `eliminatedAt: null`, `MatchParticipant.id` únicos e rejeição de configurações inválidas pelos códigos do contrato. Incluir configuração com todos os participantes assassinos resultando em vitória dos assassinos após a primeira resolução noturna (D7).
 - [ ] T038 [US2] Escrever `tests/unit/useMatchSetupViewModel.test.jsx` cobrindo seleção, atribuição de um papel por participante, contagens, bloqueios traduzidos em português e início de sessão válida.
 
 ### Implementation for User Story 2
@@ -136,14 +136,14 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - [ ] T049 [P] [US3] Escrever `tests/unit/matchEngine.assassinsResolve.test.js` cobrindo alvo repetido eliminado uma vez, alvos distintos, escolha de assassino morto na mesma resolução preservada, `nightResult`, próxima fase com detetive vivo, omissão sem detetive vivo e vitória interrompendo antes dos detetives e da votação.
 - [ ] T050 [P] [US3] Escrever `tests/unit/matchEngine.detectives.test.js` cobrindo `setInvestigation` com papel revelado, sem alteração de status, alvo `null`, detetive morto, alvo igual ao ator, alvo morto e `resolveDetectivesPhase` avançando para `DAWN_ANNOUNCEMENT`.
 - [ ] T051 [US3] Escrever `tests/unit/announcements.test.js` cobrindo o mapa exato: `TURN_START` → "Cidade Dorme", `ASSASSINS_ANNOUNCEMENT` → "Assassinos Acordem", `DETECTIVES_ANNOUNCEMENT` → "Detetives Acordem", `DAWN_ANNOUNCEMENT` → "Cidade Acorda".
-- [ ] T052 [US3] Escrever `tests/integration/nightPhases.test.jsx` cobrindo sobreposição em tela cheia com `role="dialog"`, avanço apenas por clique, executores/alvos apenas vivos, revelação do papel ao narrador, ação opcional e fase dos detetives omitida.
+- [ ] T052 [US3] Escrever `tests/integration/nightPhases.test.jsx` cobrindo sobreposição em tela cheia com `role="dialog"`, avanço apenas por ação explícita (clique ou teclado), executores/alvos apenas vivos, revelação do papel ao narrador, ação opcional e fase dos detetives omitida.
 
 ### Implementation for User Story 3
 
 - [ ] T053 [P] [US3] Implementar `src/shared/ui/SpecialOverlay.jsx` com `position: fixed; inset: 0`, `role="dialog"`, `aria-modal="true"`, dispensa por clique/Enter/Espaço, slot `footerAction` com `stopPropagation` e animações desativadas por `prefers-reduced-motion`.
 - [ ] T054 [US3] Implementar `src/features/special-announcement/model/announcements.js` e `src/features/special-announcement/ui/SpecialAnnouncement.jsx`, mantendo as frases fora do motor.
 - [ ] T055 [US3] Implementar `dismissAnnouncement(session)` em `src/entities/match/model/matchEngine.js` com transições permitidas e erro `INVALID_PHASE`.
-- [ ] T056 [US3] Implementar `setAssassinTarget` e `resolveAssassinsPhase` em `src/entities/match/model/matchEngine.js`: validar fase/ator/alvo, deduplicar alvos, eliminar cada alvo uma única vez com `eliminatedAt = { turn: currentTurn, phase: "NIGHT" }`, preencher `nightResult.eliminatedParticipantIds`, avaliar vitória e seguir para detetives ou amanhecer omitindo a fase sem detetives vivos.
+- [ ] T056 [US3] Implementar `setAssassinTarget` e `resolveAssassinsPhase` em `src/entities/match/model/matchEngine.js`: validar fase/ator/alvo, deduplicar alvos, eliminar cada alvo uma única vez com `eliminatedAt = { turn: currentTurn, phase: "NIGHT" }`, preencher `nightResult.eliminatedParticipantIds`, avaliar vitória; se houver vitória, definir `status = FINISHED`, `closureReason = VICTORY`, `winner`, `endedAt` recebido, `phase = FINISHED` e incrementar `turnCount` (D3); senão, seguir para detetives ou amanhecer, omitindo a fase sem detetives vivos.
 - [ ] T057 [US3] Implementar `setInvestigation` e `resolveDetectivesPhase` em `src/entities/match/model/matchEngine.js`: validar detetive vivo e alvo vivo diferente do ator, registrar `{ targetId, revealedRole }` ou `null`, sem alterar status, avançando para `DAWN_ANNOUNCEMENT`.
 - [ ] T058 [US3] Implementar `src/features/assassins-phase/model/assassinRows.js` e `src/features/assassins-phase/ui/AssassinsPhasePanel.jsx` com uma linha por assassino vivo, alvos vivos diferentes dele, opção "Sem alvo" e ação de processar; mortos não aparecem.
 - [ ] T059 [US3] Implementar `src/features/detectives-phase/model/detectiveRows.js` e `src/features/detectives-phase/ui/DetectivesPhasePanel.jsx` com uma linha por detetive vivo, alvos vivos diferentes dele, revelação imediata do papel ao narrador, opção sem investigação e ação de concluir.
@@ -164,13 +164,14 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 4
 
-- [ ] T064 [P] [US4] Escrever `tests/unit/matchEngine.voting.test.js` cobrindo eliminado vivo com `DEAD` e `eliminatedAt = { turn: currentTurn, phase: "VOTE" }`, empate sem mudança de status, alvo morto (`TARGET_NOT_ALIVE`), segundo resultado (`VOTE_ALREADY_REGISTERED`), vitória após votação, incremento de `turnCount`, novo turno com limpeza de dados temporários.
+- [ ] T064 [P] [US4] Escrever `tests/unit/matchEngine.voting.test.js` cobrindo eliminado vivo com `DEAD` e `eliminatedAt = { turn: currentTurn, phase: "VOTE" }`, empate sem mudança de status, alvo morto (`TARGET_NOT_ALIVE`), segundo resultado (`VOTE_ALREADY_REGISTERED`), vitória após votação, incremento de `turnCount`, novo turno com limpeza de dados temporários, `startVoting` válido em `DAWN_RESULT` e `INVALID_PHASE` em outras fases.
 - [ ] T065 [US4] Escrever `tests/unit/dawnResult.test.js` cobrindo nomes de eliminados, mensagem de nenhuma morte e opções de votação apenas com vivos.
 - [ ] T066 [US4] Escrever `tests/integration/dawnAndVoting.test.jsx` cobrindo sobreposição "Cidade Acorda", resultado nominal/sem mortes, lista de votação sem mortos, empate, eliminado e novo turno.
 
 ### Implementation for User Story 4
 
 - [ ] T067 [US4] Implementar `src/features/dawn-and-voting/model/dawnResult.js` com derivação de eliminados da noite e mensagem "Ninguém foi assassinado nesta noite", e `votingOptions.js` apenas com vivos.
+- [ ] T067a [US4] Implementar `startVoting(session)` em `src/entities/match/model/matchEngine.js`: validar fase `DAWN_RESULT` (senão `INVALID_PHASE`) e transicionar para `VOTING`; exportar por `src/entities/match/index.js`.
 - [ ] T068 [US4] Implementar `registerVote(session, result, endedAt)` em `src/entities/match/model/matchEngine.js` aceitando `{ type: "ELIMINATION", participantId }` com alvo vivo ou `{ type: "TIE" }`, sem votos individuais, avaliando vitória, incrementando `turnCount` e iniciando novo turno ou encerrando.
 - [ ] T069 [US4] Implementar `src/features/dawn-and-voting/ui/DawnResultPanel.jsx` e `VotingPanel.jsx` com eliminados/sem mortes, seleção de vivo ou empate e confirmação; mortos não aparecem e não há interface de votos individuais.
 - [ ] T070 [US4] Estender `src/pages/live-match/useLiveMatchViewModel.js` e `src/app/providers/MatchSessionProvider.jsx` com `startVoting`, `registerVote`, resultados do amanhecer e mensagens em português.
@@ -279,10 +280,27 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - [ ] T100 [P] Criar `tests/unit/architecture.test.js` verificando que `src/entities/match/model/matchEngine.js` não importa React, `fetch` ou repositórios, que `src/shared` não importa camadas internas e que features não importam outras features; corrigir violações encontradas.
 - [ ] T101 Escrever `tests/integration/persistenceConsistency.test.jsx` verificando que apenas CRUD de participantes e um único `PUT` final de partida são enviados, que ações noturnas/investigações/votos não são persistidos e que recarregar/abandonar uma partida em andamento não cria registro órfão.
 - [ ] T102 Atualizar `README.md` em português com pré-requisitos, `npm run dev:all`, `npm run dev:api`, `npm test`, `npm run lint`, `npm run build`, função do `db.json` e limitação de não recuperar partida em andamento após recarregar.
-- [ ] T103 Executar o roteiro manual de `quickstart.md` (seções 4.1 a 4.11) e as verificações de contrato (seções 5.1 e 5.2), registrar resultados e corrigir divergências sem ampliar o escopo.
+- [ ] T103 Executar o roteiro manual de `quickstart.md` (seções 4.1 a 4.11) e as verificações de contrato (seções 5.1 e 5.2), incluindo a verificação de SC-001 (configuração de partida válida em até 3 minutos), registrar resultados e corrigir divergências sem ampliar o escopo.
 - [ ] T104 Executar `npm test`, `npm run lint` e `npm run build`, corrigindo todas as falhas; confirmar que nenhum teste unitário depende do JSON Server em execução.
 
 **Checkpoint**: regras críticas verificadas, interface validada, build/lint/testes verdes e documentação operacional atualizada.
+
+---
+
+## Phase 12: Validation
+
+**Purpose**: consolidar as evidências de validação após a implementação, cobrindo contratos, regras de domínio, persistência, acessibilidade e gates de qualidade.
+
+- [ ] T105 [P] Validar os contratos `contracts/match-engine.md` e `contracts/json-server-api.md` contra o motor, repositórios e serviços implementados; corrigir divergências de comando, fase, payload ou status sem ampliar o escopo.
+- [ ] T106 Executar `npm test` e confirmar cobertura das regras críticas de configuração, noite, investigação, votação, vitória, encerramento manual e ranking (plan §7.2), registrando o resultado.
+- [ ] T107 Validar o JSON Server real: proxy `/api`, `PUT` idempotente por partida, ausência de registros órfãos, ausência de recursos de turnos/ações/votos e histórico/ranking apenas com `FINISHED`.
+- [ ] T108 Executar o roteiro de `quickstart.md` (4.1–4.11) e as verificações de contrato (5.1–5.2), registrar evidências e corrigir divergências encontradas.
+- [ ] T109 [P] Validar SC-001 (configuração em até 3 minutos), SC-011 (contraste WCAG AA e tokens do tema escuro) e a dispensa de sobreposições por clique e teclado (T052/T098).
+- [ ] T110 Validar os comportamentos aprovados D3/D5/D7: turno decisivo contabilizado, ação de assassino eliminado aplicada e configuração com todos os assassinos permitida.
+- [ ] T111 Executar `npm run lint` e `npm run build`; confirmar `tests/unit/architecture.test.js` (motor sem React/`fetch` e limites FSD) e registrar os resultados.
+- [ ] T112 Revisar e marcar `checklists/validation.md` e `checklists/requirements.md`; registrar pendências aceitas, incluindo SC-009 como validação pós-entrega.
+
+**Checkpoint**: evidências de validação registradas, checklists revisadas, gates de lint/build/testes verdes e nenhuma divergência de contrato aberta.
 
 ---
 
@@ -301,6 +319,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - **US7 (Phase 9)**: depende de US5/US6 (partidas finalizadas persistidas) e de `matchRepository`.
 - **US8 (Phase 10)**: depende de US5/US6 (persistência final) e de US7 apenas para coerência de dados derivados; pode executar em paralelo com US7 após T075/T077.
 - **Polish (Phase 11)**: depende de todas as histórias desejadas.
+- **Validation (Phase 12)**: depende da Phase 11 e de todas as histórias implementadas; executada após T103/T104.
 
 ### User Story Dependencies
 
@@ -308,7 +327,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - **US2 (P1)**: depende de US1 para seleção de participantes.
 - **US3 (P1)**: depende de US2 para sessão e início da partida.
 - **US4 (P1)**: depende de US3 para o resultado noturno.
-- **US5 (P2)**: depende de US3/US4 e da persistência de partidas.
+- **US5 (P2)**: depende de US3/US4; a avaliação de vitória já faz parte de US3/US4, enquanto US5 entrega a apresentação do resultado e a persistência final.
 - **US6 (P2)**: depende de US5 para reutilizar a gravação final.
 - **US7 (P3)**: depende de US5/US6.
 - **US8 (P3)**: depende de US5/US6.
@@ -331,6 +350,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - US6: T080 em paralelo com testes de fechamento de US5 quando o motor já estiver estável.
 - US7 e US8: após T075/T077, as duas histórias podem executar em paralelo por equipes distintas.
 - Polish: T097–T100 em paralelo.
+- Validation: T105 e T109 em paralelo; T106–T108 e T110–T112 executam após a implementação estabilizada.
 
 ---
 
@@ -366,10 +386,11 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 ### MVP Incremental
 
 1. **Demo inicial**: Setup + Foundational + US1 — cadastro de participantes funcional e persistido.
-2. **MVP de condução**: US2 + US3 + US4 — configurar, iniciar e conduzir um turno completo, mesmo que o encerramento automático ainda não esteja evidenciado na interface.
+2. **MVP de condução**: US2 + US3 + US4 — configurar, iniciar e conduzir um turno completo, incluindo a verificação de vitória e a transição para `FINISHED` (núcleo de US5); a apresentação detalhada do resultado e a persistência final podem ficar para US5.
 3. **Jogo completo**: US5 + US6 — vitória automática, resultado, persistência final, retry e encerramento manual.
 4. **Inteligência histórica**: US7 + US8 — histórico e ranking derivados.
 5. **Acabamento**: Phase 11 — erros, acessibilidade, identidade visual, integridade e validação final.
+6. **Validação consolidada**: Phase 12 — evidências de contratos, regras, persistência, acessibilidade e gates de qualidade.
 
 ### Regras críticas cobertas explicitamente
 
@@ -386,6 +407,11 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 - Encerramento manual sem vencedor e sem contar turno em andamento: T080, T082, T085.
 - Sobrevivência contabilizada no ranking: T092, T094.
 - Persistência apenas ao final, com `PUT` idempotente: T072, T074, T075, T077, T101.
+- Ação de assassino eliminado na mesma noite: T056, T105, T110.
+- Configuração com todos os assassinos: T037, T105, T110.
+- Turno decisivo contabilizado em vitória noturna: T073, T110.
+- Ranking com participantes de zero sobrevivências: T092, T094, T110.
+- Sobreposições dispensadas por clique ou teclado: T052, T098, T109.
 
 ### Definition of Done por tarefa
 
@@ -405,4 +431,4 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 - O turno corrente é derivado como `turnCount + 1`; o encerramento manual não incrementa `turnCount`.
 - A partida em andamento vive apenas em memória; recarregar ou fechar o navegador a descarta, sem registro órfão.
 - Consistência do JSON Server: somente `participants` e `matches` finalizadas; nomes resolvidos por `participantId`.
-- Decisões D1–D9 do plano permanecem registradas como pendentes de aprovação formal, embora as tarefas adotem as recomendações aprovadas no planejamento.
+- Decisões D3, D4 e D7 foram aprovadas na spec (Clarifications); as demais decisões D1–D9 do plano permanecem registradas como pendentes de aprovação formal, embora as tarefas adotem as recomendações aprovadas no planejamento.

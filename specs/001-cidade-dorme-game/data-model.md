@@ -256,7 +256,7 @@ Regras do estado de sessão:
   - a votação é registrada e há vitória → incrementa e encerra;
   - a noite produz vitória → incrementa o turno decisivo e encerra.
 - Encerramento manual em qualquer fase → não incrementa o turno em andamento.
-- A decisão de contar o turno decisivo de vitória noturna está pendente de aprovação (D3).
+- O turno decisivo de vitória noturna é contado em `turnCount` (D3 aprovado na spec).
 
 ### 7.3 Vitória
 
@@ -395,11 +395,12 @@ ordenar por survivalCount desc, depois name asc (pt-BR, sensitivity base)
 14. O nome de um participante é único no cadastro.
 15. O turno em andamento não entra em `turnCount` no encerramento manual.
 
-## 13. Decisões pendentes relacionadas
+## 13. Decisões relacionadas
 
-- **D1**: persistir `MatchParticipant` embutido em `Match`.
-- **D2**: não recuperar sessão após recarregar/fechar.
-- **D3**: contar o turno decisivo em vitória noturna.
-- **D4**: unicidade de nome sem diferenciar maiúsculas/minúsculas.
-- **D5**: ação de assassino morto na mesma noite ainda é aplicada.
-- **D7**: não bloquear configuração com todos os assassinos.
+- **D1**: persistir `MatchParticipant` embutido em `Match` (aprovado).
+- **D2**: não recuperar sessão após recarregar/fechar (aprovado).
+- **D3**: contar o turno decisivo em vitória noturna (aprovado na spec).
+- **D4**: unicidade de nome sem diferenciar maiúsculas/minúsculas (aprovado na spec).
+- **D5**: ação de assassino morto na mesma noite ainda é aplicada (aprovado).
+- **D7**: não bloquear configuração com todos os assassinos (aprovado na spec).
+- **D8**: turno manual não conta; edição reflete no histórico; ranking inclui zeros (aprovado na spec).

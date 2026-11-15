@@ -23,6 +23,14 @@ A aplicação não substitui a condução presencial, não gerencia votos indivi
 - Q: Quais participantes podem ser escolhidos como alvo por assassinos e detetives? → A: Apenas participantes vivos e diferentes do próprio executor; assassinatos entre assassinos são permitidos.
 - Q: Se a vitória for atingida já nas eliminações dos assassinos, a etapa dos detetives ainda deve ser conduzida? → A: Não. A partida é encerrada imediatamente após as eliminações dos assassinos, sem etapa dos detetives e sem votação.
 - Q: O cadastro deve exigir nomes únicos de participantes ou permitir nomes repetidos? → A: Nome único obrigatório; cadastros com nome repetido são bloqueados com mensagem explicativa.
+- Q: O turno decisivo de uma vitória noturna entra na quantidade de turnos? → A: Sim; apenas encerramentos manuais não contam o turno em andamento (D3).
+- Q: A unicidade de nome diferencia maiúsculas/minúsculas e espaços? → A: Não; a comparação é case-insensitive após `trim` (D4).
+- Q: Configuração com todos os participantes assassinos deve ser permitida? → A: Sim; apenas ao menos um assassino é exigido, e a primeira resolução noturna pode declarar vitória dos assassinos (D7).
+- Q: Quando um assassino é eliminado na mesma noite em que escolheu um alvo, a escolha dele ainda deve ser aplicada? → A: Sim; as ações dos assassinos são simultâneas, então um assassino eliminado na mesma resolução ainda tem sua escolha aplicada (D5).
+- Q: O turno em andamento conta na quantidade de turnos quando a partida é encerrada manualmente? → A: Não; apenas turnos concluídos entram na contagem (D8).
+- Q: Editar o nome de um participante altera o nome exibido nas partidas anteriores do histórico? → A: Sim; a identidade é preservada e o nome atualizado é exibido no histórico (D8).
+- Q: O ranking deve listar participantes cadastrados que ainda não têm nenhuma sobrevivência? → A: Sim; todos os cadastrados aparecem, inclusive com zero sobrevivências (D8).
+- Q: Ao recarregar ou fechar o navegador, a partida em andamento deve ser recuperada? → A: Não; a sessão em andamento é perdida, não é contabilizada e apenas dados finalizados persistem (D2).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -74,8 +82,8 @@ Como narrador, quero que a aplicação apresente as sobreposições na ordem cor
 
 **Acceptance Scenarios**:
 
-1. **Given** que um turno foi iniciado, **When** a etapa "Cidade Dorme" é apresentada, **Then** uma sobreposição cobre toda a tela com a frase "Cidade Dorme" e permanece visível até o clique do narrador.
-2. **Given** a sobreposição "Cidade Dorme" visível, **When** o narrador clica, **Then** a sobreposição desaparece e a etapa seguinte é apresentada.
+1. **Given** que um turno foi iniciado, **When** a etapa "Cidade Dorme" é apresentada, **Then** uma sobreposição cobre toda a tela com a frase "Cidade Dorme" e permanece visível até ação explícita do narrador (clique ou teclado).
+2. **Given** a sobreposição "Cidade Dorme" visível, **When** o narrador dispensa por clique ou teclado, **Then** a sobreposição desaparece e a etapa seguinte é apresentada.
 3. **Given** a etapa "Assassinos Acordem", **When** o narrador dispensa a sobreposição, **Then** é apresentada uma interface com apenas os assassinos vivos e os participantes vivos elegíveis como alvo.
 4. **Given** a interface de ações dos assassinos, **When** um assassino vivo escolhe um participante vivo como alvo, **Then** a escolha é registrada para processamento conjunto ao final da fase.
 5. **Given** a interface de ações dos assassinos, **When** o narrador deixa um assassino sem alvo, **Then** nenhuma ação é registrada para esse assassino e o turno prossegue.
@@ -98,8 +106,8 @@ Como narrador, quero visualizar o resultado da noite, incluindo os eliminados, e
 
 **Acceptance Scenarios**:
 
-1. **Given** que as ações noturnas foram processadas, **When** a etapa "Cidade Acorda" é apresentada, **Then** uma sobreposição cobre toda a tela com a frase "Cidade Acorda" e permanece visível até o clique do narrador.
-2. **Given** a sobreposição "Cidade Acorda" visível, **When** o narrador clica, **Then** a sobreposição desaparece e o resultado das ações noturnas é apresentado.
+1. **Given** que as ações noturnas foram processadas, **When** a etapa "Cidade Acorda" é apresentada, **Then** uma sobreposição cobre toda a tela com a frase "Cidade Acorda" e permanece visível até ação explícita do narrador (clique ou teclado).
+2. **Given** a sobreposição "Cidade Acorda" visível, **When** o narrador dispensa por clique ou teclado, **Then** a sobreposição desaparece e o resultado das ações noturnas é apresentado.
 3. **Given** que um ou mais participantes foram assassinados na noite, **When** o resultado é apresentado, **Then** a aplicação informa nominalmente quais participantes foram assassinados.
 4. **Given** que nenhum participante foi assassinado na noite, **When** o resultado é apresentado, **Then** a aplicação apresenta uma mensagem apropriada informando que ninguém foi assassinado.
 5. **Given** a etapa de votação, **When** o narrador seleciona um participante vivo como eliminado, **Then** o status desse participante é atualizado para morto e o turno avança.
@@ -190,6 +198,7 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 - Nenhum assassinato na noite: mensagem informando que ninguém foi assassinado; a votação prossegue normalmente.
 - Vários assassinos escolhem o mesmo alvo: eliminação única.
 - Assassino escolhe outro assassino como alvo: permitido, desde que ambos estejam vivos.
+- Assassino eliminado na mesma noite em que escolheu um alvo: sua escolha é aplicada (resolução simultânea).
 - Detetive investiga participante morto: bloqueado; alvos de investigação devem estar vivos.
 - Detetive tenta investigar a si mesmo: bloqueado.
 - Participante morto tenta agir em etapa posterior: não é oferecido como executor.
@@ -201,6 +210,8 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 - Edição de participante após partidas finalizadas: a identidade é preservada e o nome atualizado é exibido em todo o histórico.
 - Partida com apenas um sobrevivente: condições de vitória continuam sendo avaliadas normalmente.
 - Duas condições de vitória simultâneas: não podem ocorrer com participantes no jogo, pois exigiriam zero assassinos e zero inocentes/detetives ao mesmo tempo.
+- Configuração com todos os participantes assassinos: permitida; a primeira resolução noturna pode declarar vitória dos assassinos.
+- Recarregar ou fechar o navegador durante uma partida: a sessão em andamento é perdida e não é contabilizada; apenas dados finalizados permanecem.
 
 ## Requirements *(mandatory)*
 
@@ -231,7 +242,7 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 
 - **FR-018**: O sistema MUST organizar a partida em turnos sequenciais.
 - **FR-019**: O sistema MUST apresentar, no início de cada turno, uma sobreposição de tela cheia com a frase exata "Cidade Dorme".
-- **FR-020**: O sistema MUST manter cada sobreposição visível até o clique do narrador.
+- **FR-020**: O sistema MUST manter cada sobreposição visível até que o narrador a dispense por clique ou ativação equivalente por teclado.
 - **FR-021**: O sistema MUST apresentar a sobreposição "Assassinos Acordem" após a dispensa da etapa anterior.
 - **FR-022**: O sistema MUST apresentar, após a dispensa de "Assassinos Acordem", uma interface para registrar a ação de cada assassino vivo.
 - **FR-023**: O sistema MUST permitir que cada assassino vivo escolha no máximo um participante vivo e diferente de si mesmo como alvo por turno.
@@ -265,7 +276,7 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 - **FR-048**: O sistema MUST verificar as condições de vitória imediatamente após o processamento das eliminações dos assassinos; se a vitória for atingida, MUST encerrar a partida sem realizar a etapa dos detetives e sem realizar a votação.
 - **FR-049**: O sistema MUST verificar as condições de vitória imediatamente após o registro do resultado da votação.
 - **FR-050**: O sistema MUST apresentar ao narrador o resultado da partida com a identificação clara do lado vencedor.
-- **FR-051**: O sistema MUST interromper o fluxo de etapas quando uma condição de vitória for atingida, sem iniciar novo turno.
+- **FR-051**: O sistema MUST aplicar as interrupções de fluxo descritas em FR-048 e FR-049, sem iniciar novo turno.
 
 ### Functional Requirements — Encerramento Manual
 
@@ -279,7 +290,7 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 
 ### Functional Requirements — Histórico
 
-- **FR-059**: O sistema MUST manter o histórico de partidas finalizadas por vitória ou por encerramento manual.
+- **FR-059**: O sistema MUST manter, entre sessões de uso, o histórico de partidas finalizadas por vitória ou por encerramento manual.
 - **FR-060**: O sistema MUST apresentar, para cada partida finalizada, seus participantes, papéis atribuídos, status final de cada participante, quantidade de turnos realizados e resultado.
 - **FR-061**: O sistema MUST indicar encerramentos manuais como partidas sem vencedor.
 - **FR-062**: O sistema MUST excluir partidas em andamento do histórico de partidas finalizadas.
@@ -295,14 +306,16 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 
 ### Functional Requirements — Interface e Experiência
 
-- **FR-069**: O sistema MUST exibir as frases especiais em sobreposições que cubram toda a tela.
-- **FR-070**: O sistema MUST dispensar as sobreposições especiais somente mediante clique do narrador.
+- **FR-069**: (Subsumido por FR-019/FR-021/FR-029/FR-037: frases especiais exibidas em sobreposições de tela cheia.)
+- **FR-070**: (Subsumido por FR-020: dispensa apenas por ação explícita do narrador, por clique ou teclado.)
 - **FR-071**: O sistema MUST manter uma atmosfera visual sombria, coerente com a temática de mistério do jogo.
 - **FR-072**: O sistema MUST manter a interface funcional e compreensível mesmo sem animações.
 - **FR-073**: O sistema MUST apresentar mensagens explicativas em todas as situações de bloqueio de regra de negócio.
 - **FR-074**: O sistema MUST permitir ao narrador identificar claramente o estado atual da partida e a próxima etapa a ser conduzida.
 
 ### Key Entities *(include if feature involves data)*
+
+**Nota de modelagem**: Turno, Ação de Assassinato, Investigação e Registro de Votação são entidades de domínio mantidas em memória durante a partida e não são persistidas individualmente. O turno atual da Partida é derivado como `turnCount + 1`.
 
 - **Participante**: pessoa cadastrada reutilizável em partidas. Atributos: identificador, nome, vínculo histórico com partidas. O nome é obrigatório e único.
 - **Partida**: execução do jogo com participantes, papéis e turnos. Atributos: identificador, participantes, status (em andamento ou encerrada), forma de encerramento (vitória ou manual), turno atual, quantidade de turnos concluídos, resultado e lado vencedor quando houver.
@@ -320,14 +333,15 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 
 - **SC-001**: O narrador consegue cadastrar participantes e configurar uma partida válida com pelo menos cinco participantes em até 3 minutos.
 - **SC-002**: 100% das tentativas de iniciar partida com menos de cinco participantes ou sem assassino são bloqueadas com mensagem explicativa.
-- **SC-003**: O narrador consegue conduzir um turno completo apenas com cliques e registros na aplicação, sem realizar cálculos manuais de eliminação ou vitória.
-- **SC-004**: 100% das sobreposições especiais cobrem toda a tela e permanecem visíveis até um clique do narrador.
+- **SC-003**: O narrador consegue conduzir um turno completo apenas com cliques/teclado e registros na aplicação, sem realizar cálculos manuais de eliminação ou vitória.
+- **SC-004**: 100% das sobreposições especiais cobrem toda a tela e permanecem visíveis até uma ação explícita do narrador (clique ou teclado).
 - **SC-005**: Em um conjunto de cenários de teste roteirizados, 100% das regras de ação, eliminação, votação e vitória são aplicadas sem violação.
 - **SC-006**: 100% das partidas finalizadas podem ser reconstruídas a partir do histórico, incluindo participantes, papéis, status final, turnos e resultado.
 - **SC-007**: O ranking reflete exatamente as sobrevivências esperadas em 100% dos cenários de teste, incluindo encerramentos manuais e partidas em andamento.
 - **SC-008**: Após uma eliminação que satisfaça uma condição de vitória, o narrador visualiza o resultado da partida na mesma interação, sem etapa adicional de confirmação.
 - **SC-009**: Em teste de usabilidade com pelo menos cinco narradores, pelo menos 90% concluem a condução de um turno na primeira tentativa sem ajuda externa.
 - **SC-010**: A interface permanece totalmente utilizável com animações desativadas.
+- **SC-011**: O tema utiliza os tokens dark aprovados e mantém contraste mínimo WCAG AA para texto principal e controles.
 
 ## Assumptions
 
@@ -361,12 +375,15 @@ Como narrador, quero visualizar os participantes ordenados pela quantidade de pa
 - Funcionalidades que substituam o papel do narrador na condução presencial.
 - Exclusão de participantes cadastrados, salvo se solicitada em evolução futura.
 - Regras adicionais de papéis especiais não descritas nesta especificação.
+- Validação de usabilidade com narradores externos (SC-009): executada após a entrega, fora do escopo de implementação.
 
-## Dúvidas e Inconsistências Remanescentes
+## Interpretações Confirmadas
 
-As interpretações abaixo permanecem adotadas para manter a especificação testável e devem ser confirmadas antes do planejamento. Itens já esclarecidos estão registrados em Clarifications.
+Todas as interpretações de comportamento foram confirmadas na seção Clarifications e incorporadas às regras acima:
 
-1. **Contagem de turnos em encerramento manual**: não especificado se o turno em andamento conta. Interpretação adotada: apenas turnos concluídos são contabilizados.
-2. **Edição de participante e histórico**: não especificado se a edição altera partidas passadas. Interpretação adotada: a identidade é preservada e o nome atualizado é exibido no histórico.
-3. **Participantes sem sobrevivências no ranking**: não especificado se o ranking lista todos os cadastrados ou apenas quem já sobreviveu. Interpretação adotada: todos os participantes cadastrados aparecem, inclusive com zero sobrevivências.
+1. **Contagem de turnos em encerramento manual**: apenas turnos concluídos são contabilizados.
+2. **Edição de participante e histórico**: a identidade é preservada e o nome atualizado é exibido no histórico.
+3. **Participantes sem sobrevivências no ranking**: todos os participantes cadastrados aparecem, inclusive com zero sobrevivências.
+
+Não há dúvidas ou inconsistências abertas.
 

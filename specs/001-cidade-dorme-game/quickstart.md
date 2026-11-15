@@ -94,16 +94,16 @@ Resultados esperados:
 ### 4.4 Sobreposições
 
 1. Observar “Cidade Dorme”.
-2. Clicar na tela.
-3. Observar “Assassinos Acordem” e clicar.
+2. Dispensar a sobreposição por clique ou teclado.
+3. Observar “Assassinos Acordem” e dispensar.
 4. Registrar ações e prosseguir até “Detetives Acordem”.
-5. Se houver detetive vivo, clicar e observar a interface de investigação.
-6. Prosseguir até “Cidade Acorda” e clicar.
+5. Se houver detetive vivo, dispensar e observar a interface de investigação.
+6. Prosseguir até “Cidade Acorda” e dispensar.
 
 **Esperado**
 
 - Cada frase cobre toda a tela.
-- Nenhuma desaparece sem clique.
+- Nenhuma desaparece sem ação explícita do narrador (clique ou teclado).
 - A ordem é exatamente a definida na especificação.
 - “Cidade Acorda” não aparece se a partida terminar durante a noite.
 
@@ -247,7 +247,7 @@ curl "http://localhost:3001/matches?status=FINISHED&_sort=endedAt&_order=desc"
 - [ ] Participantes criados/editados persistem e têm nome único.
 - [ ] Configuração exige cinco participantes e ao menos um assassino.
 - [ ] Partida sem detetive funciona com a fase omitida.
-- [ ] Sobreposições cobrem a tela e só somem com clique.
+- [ ] Sobreposições cobrem a tela e só somem com ação explícita (clique ou teclado).
 - [ ] Ações noturnas e investigações funcionam sem persistência individual.
 - [ ] Eliminações conjuntas e votação respeitam as regras.
 - [ ] Vitória é automática e interrompe o fluxo.

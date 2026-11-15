@@ -117,20 +117,21 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 - **Decisão**: comparar nomes após `trim`, sem diferenciar maiúsculas/minúsculas, tanto na criação quanto na edição (excluindo o próprio registro).
 - **Justificativa**: atende à especificação com um único narrador; o JSON Server não oferece constraint.
 - **Alternativas consideradas**: middleware customizado no JSON Server — complexidade operacional sem requisito; comparação exata — permitiria “Ana” e “ana”, gerando ambiguidade.
+- **Status**: aprovado (D4 na spec).
 
 ### D-R14 — Contagem de turnos
 
 - **Decisão**: `turnCount` conta turnos encerrados. O turno corrente é `turnCount + 1`. Encerramento manual não incrementa o turno em andamento. Vitória após a noite ou após a votação encerra o turno decisivo e o contabiliza.
 - **Justificativa**: evita histórico com zero turnos em partidas decididas na primeira noite e respeita a regra explícita de não contar turno em andamento no encerramento manual.
 - **Alternativas consideradas**: contar apenas turnos com votação concluída — deixaria partidas decididas à noite com zero turnos; contar qualquer turno iniciado — violaria a regra do encerramento manual.
-- **Status**: requer aprovação (D3 no plano).
+- **Status**: aprovado (D3 no plano e na spec).
 
 ### D-R15 — Resolução simultânea das ações dos assassinos
 
 - **Decisão**: registrar as escolhas enquanto os assassinos estão vivos, deduplicar alvos e aplicar todas as mortes juntas. Um assassino morto na mesma resolução ainda tem sua escolha aplicada.
 - **Justificativa**: é a leitura coerente com “processar todas as escolhas conjuntamente” e com a possibilidade de assassinato entre assassinos. A investigação ocorre depois, então detetives mortos na noite não agem.
 - **Alternativas consideradas**: cancelar ações de assassinos mortos na mesma noite — exigiria uma ordem interna não definida pela especificação.
-- **Status**: requer aprovação (D5 no plano).
+- **Status**: aprovado (D5 no plano).
 
 ### D-R16 — Ranking derivado das partidas finalizadas
 
@@ -143,7 +144,7 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 - **Decisão**: perder a sessão em andamento; não criar registro de partida inacabada.
 - **Justificativa**: estratégia mais simples; evita dados órfãos e recuperação parcial de ações não persistidas.
 - **Alternativas consideradas**: `sessionStorage` — recuperaria apenas a aba e exigiria versionamento; persistir rascunho no JSON Server — mais complexo e fora do escopo.
-- **Status**: requer aprovação (D2 no plano).
+- **Status**: aprovado (D2 no plano).
 
 ### D-R18 — Erros de domínio por código e tradução na apresentação
 
@@ -178,6 +179,6 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 | Como calcular ranking? | Derivação de partidas finalizadas + participantes; sem persistência. |
 | Como garantir nome único? | Normalização e comparação no cliente, incluindo edição. |
 
-## 4. Decisões que permanecem pendentes de aprovação
+## 4. Decisões aprovadas
 
-As decisões D1–D9 listadas no fim de [plan.md](./plan.md) dependem de confirmação. Nenhuma delas impede o design; o plano adota a recomendação indicada e deve ser ajustado se houver outra escolha.
+Todas as decisões D1–D9 foram aprovadas. D2, D3, D4, D5, D7 e D8 estão registradas na spec (Clarifications); D1, D6 e D9 estão registradas em [plan.md](./plan.md). Nenhuma decisão permanece pendente de confirmação formal.

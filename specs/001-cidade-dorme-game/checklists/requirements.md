@@ -31,5 +31,6 @@
 
 ## Notes
 
-- A especificação adota interpretações explícitas para 10 ambiguidades identificadas na seção "Dúvidas e Inconsistências Identificadas". Recomenda-se confirmá-las antes de `/speckit.plan`.
+- Revalidado após a sessão de Clarifications de 2026-11-14: D2, D3, D4, D5, D7 e D8 confirmadas; não há ambiguidades abertas na especificação.
+- SC-009 (teste de usabilidade com narradores externos) foi declarado fora do escopo de implementação e será validado após a entrega.
 - A Constituição foi respeitada: nenhuma decisão de arquitetura, pasta, componente ou biblioteca foi tomada nesta etapa.

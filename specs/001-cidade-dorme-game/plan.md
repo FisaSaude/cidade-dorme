@@ -9,7 +9,7 @@ O plano implementa uma SPA React (JavaScript) para o narrador conduzir partidas 
 
 A persistência usará o JSON Server para participantes e partidas finalizadas. As ações noturnas e investigações permanecem em memória durante a partida. A partida será persistida em uma única operação idempotente ao ser encerrada, com os `MatchParticipant` embutidos no documento da partida. Essa escolha evita escritas parciais e mantém o histórico e o ranking deriváveis dos dados persistidos.
 
-O template Vite existente será preservado. Apenas o conteúdo de demonstração será substituído pela aplicação, e as dependências necessárias para persistência e testes serão adicionadas com justificativa.
+O template Vite existente será preservado (configuração, `public/` e assets não-demo). Apenas o conteúdo de demonstração será substituído pela aplicação, e as dependências necessárias para persistência e testes serão adicionadas com justificativa.
 
 ## Contexto Técnico
 
@@ -31,7 +31,7 @@ O template Vite existente será preservado. Apenas o conteúdo de demonstração
 
 **Escala/Escopo**: Um narrador, dezenas de participantes cadastrados, partidas com 5 ou mais participantes, histórico pequeno a moderado. Aproximadamente 5 telas principais e 1 fluxo central de partida.
 
-**Incertezas**: Nenhum `NEEDS CLARIFICATION` técnico permanece após a pesquisa registrada em [research.md](./research.md). Decisões que dependem de aprovação do usuário estão listadas ao final deste plano.
+**Incertezas**: Nenhuma lacuna técnica permanece após a pesquisa registrada em [research.md](./research.md). Todas as decisões D1–D9 foram aprovadas e estão registradas na seção 10.2.
 
 ## Verificação da Constituição
 
@@ -483,7 +483,7 @@ Fluxo principal:
 1. O narrador cadastra participantes.
 2. Seleciona pelo menos cinco e atribui manualmente assassinos e detetives. O restante vira inocente.
 3. Inicia a partida. O turno 1 começa com “Cidade Dorme”.
-4. Dispensa as sobreposições por clique e registra as ações noturnas.
+4. Dispensa as sobreposições por clique ou teclado e registra as ações noturnas.
 5. Ao final da noite, vê o resultado, registra a votação e continua.
 6. Em vitória ou encerramento manual, vê o resultado imediatamente; a partida é persistida.
 7. Histórico e ranking refletem apenas partidas finalizadas.
@@ -501,8 +501,8 @@ Fluxo principal:
 ```
 
 - O mapa fase → frase fica em `features/special-announcement/model/announcements.js`, não no motor.
-- O componente cobre toda a tela com `position: fixed; inset: 0`, `role="dialog"`, `aria-modal="true"` e instrução “Clique para continuar”.
-- A dispensa ocorre apenas por clique (ou Enter/Espaço para acessibilidade); não há temporizador.
+- O componente cobre toda a tela com `position: fixed; inset: 0`, `role="dialog"`, `aria-modal="true"` e instrução “Clique ou pressione Enter/Espaço para continuar”.
+- A dispensa ocorre apenas por ação explícita do narrador (clique, Enter ou Espaço); não há temporizador.
 - O slot `footerAction` permite o botão “Encerrar partida” durante a sobreposição, com `stopPropagation` para não dispensar a tela. O diálogo de confirmação fica acima da sobreposição.
 - Animações de entrada/saída usam CSS e são desativadas por `prefers-reduced-motion`. A informação nunca depende de animação.
 
@@ -547,7 +547,7 @@ Não haverá testes E2E automatizados nesta etapa; o custo de Playwright/Cypress
 | Ranking | Apenas finalizadas; sobreviventes contam; mortos não contam; empate alfabético; participantes com zero; partida em andamento ignorada. |
 | Configuração | Menos de 5 bloqueado; sem assassino bloqueado; sem detetive permitido; um papel por participante; todos começam vivos. |
 | Persistência | Nada é gravado antes do fim; `PUT` único; retry idempotente; falha exibe erro e permite nova tentativa. |
-| Interface | Sobreposição em tela cheia dispensada por clique; confirmação de encerramento; mensagens de bloqueio; mortos ausentes de executores/alvos. |
+| Interface | Sobreposição em tela cheia dispensada por clique ou teclado; confirmação de encerramento; mensagens de bloqueio; mortos ausentes de executores/alvos. |
 
 ### 7.3 Ferramentas e organização
 
@@ -557,6 +557,7 @@ Não haverá testes E2E automatizados nesta etapa; o custo de Playwright/Cypress
 - Repositórios falsos em memória; nenhum teste unitário deve depender do JSON Server.
 - Comandos: `npm test` (`vitest run`) e `npm run test:watch`.
 - `npm run lint` e `npm run build` continuam sendo verificações obrigatórias.
+- O gate `checklists/validation.md` deve estar integralmente revisado e marcado antes de `/speckit.implement`.
 
 ## 8. Dependências necessárias
 
@@ -586,13 +587,13 @@ As versões exatas serão fixadas no momento da instalação, verificando compat
 
 Cada etapa deve terminar com testes verdes e sem antecipar funcionalidades da etapa seguinte. A implementação detalhada será derivada em `tasks.md` na próxima fase do Spec Kit.
 
-## 10. Riscos, limitações e decisões pendentes
+## 10. Riscos, limitações e decisões
 
 ### 10.1 Riscos e limitações
 
 | Risco / limitação | Impacto | Mitigação |
 |---|---|---|
-| Recarregar ou fechar o navegador perde a partida em andamento. | O narrador precisa reiniciar a partida; ela não entra no histórico. | Documentado no quickstart e na tela; estratégia mais simples aceita. |
+| Recarregar ou fechar o navegador perde a partida em andamento. | O narrador precisa reiniciar a partida; ela não entra no histórico. | Documentado no quickstart e na tela; estratégia aprovada (D2). |
 | Fechar a aba imediatamente após o encerramento, antes da gravação. | Partida finalizada pode não aparecer no histórico. | Resultado é exibido antes da gravação; falha gera aviso e “Tentar novamente”; JSON Server é local, tornando a escrita rápida. |
 | JSON Server não impõe unicidade de nome nem esquema. | Nomes duplicados poderiam surgir em uso multiaba; dados inválidos poderiam ser gravados manualmente. | Validação no cliente, uso por um único narrador, validação mínima nas respostas. |
 | Sem transações no JSON Server. | Gravação parcial se houvesse múltiplos recursos. | `MatchParticipant` embutido e `PUT` único/idempotente. |
@@ -602,22 +603,22 @@ Cada etapa deve terminar com testes verdes e sem antecipar funcionalidades da et
 | Nomes do histórico vêm do cadastro atual. | Edição altera o nome exibido em partidas antigas. | Comportamento exigido pela especificação. |
 | Nome editado durante uma partida pode não atualizar a tela de partida até novo carregamento. | Pequena inconsistência visual. | Cenário não exigido; a partida usa IDs e a tela recarrega dados ao montar. |
 | `crypto.randomUUID` depende de contexto seguro. | Indisponível fora de `localhost`/HTTPS. | Fallback em `shared/lib/id.js`; uso local em `localhost`. |
-| Configuração com todos os participantes assassinos não é bloqueada pela spec. | A primeira resolução noturna pode declarar vitória dos assassinos imediatamente. | Não adicionar regra não prevista; registrar como decisão pendente. |
+| Configuração com todos os participantes assassinos é permitida pela spec. | A primeira resolução noturna pode declarar vitória dos assassinos imediatamente. | Permitido explicitamente em Clarifications (D7); coberto por teste em US2. |
 | Dependências de teste adicionam peso ao projeto. | Instalação maior. | Necessárias para a estratégia de testes; sem E2E. |
 
-### 10.2 Decisões que necessitam de aprovação
+### 10.2 Decisões e aprovações
 
 | # | Decisão | Recomendação |
 |---|---|---|
-| D1 | Persistir `MatchParticipant` embutido em `Match` (uma escrita) em vez de coleção separada. | Aprovar. Mantém a entidade no domínio, evita escritas parciais e simplifica histórico/ranking. |
-| D2 | Não recuperar partida em andamento após recarregar/fechar o navegador. | Aprovar. É a estratégia mais simples e não cria dados órfãos. |
-| D3 | Contar o turno decisivo quando a vitória ocorre antes da votação (após a noite). | Aprovar. Evita histórico com zero turnos quando a partida termina na primeira noite; o turno foi conduzido até o desfecho. |
-| D4 | Considerar nomes únicos sem diferenciar maiúsculas/minúsculas e após `trim`. | Aprovar. Evita ambiguidade na seleção. |
-| D5 | Aplicar a ação de um assassino eliminado na mesma noite (resolução simultânea). | Aprovar. Coerente com o processamento conjunto exigido. |
-| D6 | Navegação interna sem React Router. | Aprovar. Não há requisito de URL/deep link; reduz dependências. |
-| D7 | Não bloquear configurações com todos os participantes assassinos, pois a spec só exige ao menos um assassino. | Aprovar a ausência de regra adicional ou definir uma validação futura. |
-| D8 | Adotar as três interpretações remanescentes da spec (turno manual não conta; edição reflete no histórico; ranking inclui zeros) como aprovadas. | Confirmar, pois a própria spec pede confirmação antes do planejamento. |
-| D9 | Adicionar `concurrently` e as dependências de teste. | Aprovar a instalação. |
+| D1 | Persistir `MatchParticipant` embutido em `Match` (uma escrita) em vez de coleção separada. | Aprovado: manter embutido; evita escritas parciais e simplifica histórico/ranking. |
+| D2 | Não recuperar partida em andamento após recarregar/fechar o navegador. | Aprovado: sem recuperação; a sessão em andamento é perdida e não contabilizada. |
+| D3 | Contar o turno decisivo quando a vitória ocorre antes da votação (após a noite). | Aprovado na spec (Clarifications): o turno decisivo conta em `turnCount`. |
+| D4 | Considerar nomes únicos sem diferenciar maiúsculas/minúsculas e após `trim`. | Aprovado na spec (Clarifications): comparação case-insensitive após `trim`. |
+| D5 | Aplicar a ação de um assassino eliminado na mesma noite (resolução simultânea). | Aprovado: ações simultâneas; a escolha do assassino eliminado é aplicada. |
+| D6 | Navegação interna sem React Router. | Aprovado: navegação interna sem roteador; não há requisito de URL/deep link. |
+| D7 | Não bloquear configurações com todos os participantes assassinos, pois a spec só exige ao menos um assassino. | Aprovado: permitir; a primeira resolução noturna pode declarar vitória dos assassinos. |
+| D8 | Adotar as três interpretações de comportamento da spec (turno manual não conta; edição reflete no histórico; ranking inclui zeros) como aprovadas. | Aprovado na spec (Clarifications): turno em andamento não conta; edição reflete no histórico; ranking inclui zeros. |
+| D9 | Adicionar `concurrently` e as dependências de teste. | Aprovado: instalar as dependências planejadas. |
 
 ## Rastreamento de Complexidade
 
