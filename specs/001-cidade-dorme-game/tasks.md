@@ -29,12 +29,12 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 **Purpose**: preparar dependências, scripts, proxy, aliases e infraestrutura de testes definidos no plano.
 
-- [ ] T001 Instalar em `package.json` as dependências de desenvolvimento `json-server`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event` e `concurrently`, verificando compatibilidade com Vite 8, React 19 e Node 24.
-- [ ] T002 Adicionar em `package.json` os scripts `dev:api` (`json-server --watch db.json --port 3001`), `dev:all` (JSON Server + Vite com `concurrently`), `test` (`vitest run`) e `test:watch` (`vitest`).
-- [ ] T003 Configurar em `vite.config.js` o proxy de `/api` para `http://localhost:3001` removendo o prefixo `/api`, e o alias `@` apontando para `src`.
-- [ ] T004 [P] Criar `jsconfig.json` com o mapeamento de caminho `@/*` para `src/*`, alinhado ao alias do Vite.
-- [ ] T005 [P] Configurar o Vitest em `vite.config.js` com ambiente `jsdom` e `setupFiles: ['./tests/setup.js']`, e criar `tests/setup.js` com limpeza da Testing Library e imports explícitos de `describe`, `it`, `expect` e `vi` quando necessário.
-- [ ] T006 [P] Criar `db.json` na raiz com `{ "participants": [], "matches": [] }` como fonte persistida observada pelo JSON Server.
+- [X] T001 Instalar em `package.json` as dependências de desenvolvimento `json-server`, `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event` e `concurrently`, verificando compatibilidade com Vite 8, React 19 e Node 24.
+- [X] T002 Adicionar em `package.json` os scripts `dev:api` (`json-server --watch db.json --port 3001`), `dev:all` (JSON Server + Vite com `concurrently`), `test` (`vitest run`) e `test:watch` (`vitest`).
+- [X] T003 Configurar em `vite.config.js` o proxy de `/api` para `http://localhost:3001` removendo o prefixo `/api`, e o alias `@` apontando para `src`.
+- [X] T004 [P] Criar `jsconfig.json` com o mapeamento de caminho `@/*` para `src/*`, alinhado ao alias do Vite.
+- [X] T005 [P] Configurar o Vitest em `vite.config.js` com ambiente `jsdom` e `setupFiles: ['./tests/setup.js']`, e criar `tests/setup.js` com limpeza da Testing Library e imports explícitos de `describe`, `it`, `expect` e `vi` quando necessário.
+- [X] T006 [P] Criar `db.json` na raiz com `{ "participants": [], "matches": [] }` como fonte persistida observada pelo JSON Server.
 
 **Checkpoint**: `npm install`, `npm run dev:api`, `npm run dev` e `npm test` operacionais.
 
