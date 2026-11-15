@@ -1,4 +1,17 @@
 {
-  "participants": [],
+  "participants": [
+    {
+      "id": "f1d10b58-ed97-43b8-9eb4-363a3e69fbab",
+      "name": "Wendel"
+    },
+    {
+      "id": "7e9d6e6f-7e91-49bb-bb14-103d7417fa2d",
+      "name": "José"
+    },
+    {
+      "id": "2bd8e550-eb60-4845-b71e-07b4a1e99df1",
+      "name": "Paulo"
+    }
+  ],
   "matches": []
 }

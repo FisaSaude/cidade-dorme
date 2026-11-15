@@ -1,14 +1,16 @@
 import { createContext, useContext } from 'react'
+import { participantRepository } from '@/entities/participant'
 import { nowIso } from '@/shared/lib/date'
 import { createId } from '@/shared/lib/id'
 
 /**
- * Serviços padrão da aplicação. Repositórios serão adicionados pelas histórias
+ * Serviços padrão da aplicação. Repositórios são adicionados pelas histórias
  * que os utilizam; sobrescritas permitem testes determinísticos.
  */
 export const DEFAULT_APP_SERVICES = Object.freeze({
   idFactory: createId,
   now: nowIso,
+  participantRepository,
 })
 
 export const AppServicesContext = createContext(null)

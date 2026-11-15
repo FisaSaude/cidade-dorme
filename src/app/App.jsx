@@ -1,5 +1,7 @@
+import { ParticipantsPage } from '@/pages/participants/ParticipantsPage'
 import { NAV_ITEMS, SCREEN_LABELS, SCREENS } from './navigation/screens'
 import { useAppNavigation } from './navigation/useAppNavigation'
+import { useAppServices } from './providers/appServices'
 import styles from './App.module.css'
 
 const SCREEN_CONTENT = {
@@ -28,6 +30,7 @@ const SCREEN_CONTENT = {
 
 function App() {
   const { activeScreen, navigate } = useAppNavigation()
+  const { participantRepository } = useAppServices()
   const content = SCREEN_CONTENT[activeScreen] ?? SCREEN_CONTENT[SCREENS.PARTICIPANTS]
 
   return (
@@ -63,6 +66,9 @@ function App() {
         <section className={styles.screen} aria-labelledby="screen-title">
           <h1 id="screen-title">{content.title}</h1>
           <p className={styles.screenSubtitle}>{content.description}</p>
+          {activeScreen === SCREENS.PARTICIPANTS ? (
+            <ParticipantsPage participantRepository={participantRepository} />
+          ) : null}
         </section>
       </main>
       <footer className={styles.footer}>

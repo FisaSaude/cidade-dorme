@@ -76,21 +76,21 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 1
 
-- [ ] T024 [P] [US1] Escrever `tests/unit/participant.test.js` para `name` obrigatório e não vazio após `trim`, unicidade sem diferenciar maiúsculas/minúsculas, preservação da grafia informada e preservação de `id` na edição.
-- [ ] T025 [P] [US1] Escrever `tests/unit/participantRepository.test.js` cobrindo `GET /participants`, `POST /participants` com UUID gerado no cliente, `PATCH /participants/:id`, validação mínima da resposta e `ApiError` em falhas.
-- [ ] T026 [US1] Escrever `tests/unit/useParticipantsViewModel.test.jsx` cobrindo carregamento, criação, edição, nome obrigatório, nome duplicado e tradução de códigos de erro para mensagens em português.
+- [X] T024 [P] [US1] Escrever `tests/unit/participant.test.js` para `name` obrigatório e não vazio após `trim`, unicidade sem diferenciar maiúsculas/minúsculas, preservação da grafia informada e preservação de `id` na edição.
+- [X] T025 [P] [US1] Escrever `tests/unit/participantRepository.test.js` cobrindo `GET /participants`, `POST /participants` com UUID gerado no cliente, `PATCH /participants/:id`, validação mínima da resposta e `ApiError` em falhas.
+- [X] T026 [US1] Escrever `tests/unit/useParticipantsViewModel.test.jsx` cobrindo carregamento, criação, edição, nome obrigatório, nome duplicado e tradução de códigos de erro para mensagens em português.
 
 ### Implementation for User Story 1
 
-- [ ] T027 [P] [US1] Implementar `src/entities/participant/model/participant.js` com normalização por `trim`, validação de nome obrigatório, detecção de duplicado sem diferenciar maiúsculas/minúsculas com exclusão do próprio `id`, preservando a grafia informada.
-- [ ] T028 [US1] Implementar `src/entities/participant/api/participantRepository.js` com `list`, `create` e `update` via `httpClient`, UUID gerado no cliente, validação mínima de formato e `ApiError`; exportar pela API pública `src/entities/participant/index.js`.
-- [ ] T029 [P] [US1] Implementar `src/entities/participant/ui/ParticipantName.jsx` como componente apresentacional do nome do participante.
-- [ ] T030 [US1] Implementar `src/features/participant-form/model/participantForm.js` e `src/features/participant-form/ui/ParticipantForm.jsx` com criação/edição, campos obrigatórios, mensagens em português e ações de salvar/cancelar, sem decidir regra de jogo.
-- [ ] T031 [US1] Implementar `src/widgets/participants-table/ParticipantsTable.jsx` e estilos com lista, ação de editar, estado vazio e estado de carregamento.
-- [ ] T032 [US1] Implementar `src/pages/participants/useParticipantsViewModel.js` com `useAsyncData`, estado do formulário, criação, edição, bloqueio de duplicado/obrigatório, mensagens pt-BR e recarga da lista.
-- [ ] T033 [US1] Implementar `src/pages/participants/ParticipantsPage.jsx` compondo tabela, formulário, alertas e estado vazio; a View apenas renderiza `viewState` e despacha `actions`.
-- [ ] T034 [US1] Estender `src/app/providers/AppProviders.jsx` com `participantRepository` e integrar `ParticipantsPage` ao shell/navegação em `src/app/App.jsx`.
-- [ ] T035 [US1] Escrever `tests/integration/participants.test.jsx` cobrindo estado vazio, criação, edição, bloqueio de duplicado com mensagem e manutenção do mesmo ID após edição, usando repositório falso; incluir preservação do vínculo de um participante usado em duas partidas finalizadas distintas.
+- [X] T027 [P] [US1] Implementar `src/entities/participant/model/participant.js` com normalização por `trim`, validação de nome obrigatório, detecção de duplicado sem diferenciar maiúsculas/minúsculas com exclusão do próprio `id`, preservando a grafia informada.
+- [X] T028 [US1] Implementar `src/entities/participant/api/participantRepository.js` com `list`, `create` e `update` via `httpClient`, UUID gerado no cliente, validação mínima de formato e `ApiError`; exportar pela API pública `src/entities/participant/index.js`.
+- [X] T029 [P] [US1] Implementar `src/entities/participant/ui/ParticipantName.jsx` como componente apresentacional do nome do participante.
+- [X] T030 [US1] Implementar `src/features/participant-form/model/participantForm.js` e `src/features/participant-form/ui/ParticipantForm.jsx` com criação/edição, campos obrigatórios, mensagens em português e ações de salvar/cancelar, sem decidir regra de jogo.
+- [X] T031 [US1] Implementar `src/widgets/participants-table/ParticipantsTable.jsx` e estilos com lista, ação de editar, estado vazio e estado de carregamento.
+- [X] T032 [US1] Implementar `src/pages/participants/useParticipantsViewModel.js` com `useAsyncData`, estado do formulário, criação, edição, bloqueio de duplicado/obrigatório, mensagens pt-BR e recarga da lista.
+- [X] T033 [US1] Implementar `src/pages/participants/ParticipantsPage.jsx` compondo tabela, formulário, alertas e estado vazio; a View apenas renderiza `viewState` e despacha `actions`.
+- [X] T034 [US1] Estender `src/app/providers/AppProviders.jsx` com `participantRepository` e integrar `ParticipantsPage` ao shell/navegação em `src/app/App.jsx`.
+- [X] T035 [US1] Escrever `tests/integration/participants.test.jsx` cobrindo estado vazio, criação, edição, bloqueio de duplicado com mensagem e manutenção do mesmo ID após edição, usando repositório falso; incluir preservação do vínculo de um participante usado em duas partidas finalizadas distintas.
 
 **Checkpoint**: US1 funcional e testável sem depender de partidas.
 

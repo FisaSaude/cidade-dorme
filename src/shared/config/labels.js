@@ -37,6 +37,8 @@ export const matchClosureReasonLabels = Object.freeze({
 })
 
 export const gameRuleErrorMessages = Object.freeze({
+  PARTICIPANT_NAME_REQUIRED: 'Informe o nome do participante.',
+  PARTICIPANT_NAME_DUPLICATED: 'Já existe um participante com esse nome.',
   MIN_PARTICIPANTS: 'Selecione pelo menos cinco participantes.',
   NO_ASSASSIN: 'Inclua pelo menos um assassino.',
   INVALID_ROLE: 'Um dos papéis selecionados é inválido.',
