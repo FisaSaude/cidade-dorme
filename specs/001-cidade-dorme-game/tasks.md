@@ -274,14 +274,14 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 **Purpose**: acabamento visual, acessibilidade, consistência de erros, integridade da persistência e validação final.
 
-- [ ] T097 [P] Completar `src/shared/config/labels.js` com mensagens em português para todos os códigos de `GameRuleError` e fallback seguro; cobrir com `tests/unit/errorMessages.test.js` a cobertura de todos os códigos e a ausência de mensagens técnicas expostas ao narrador.
-- [ ] T098 [P] Revisar acessibilidade em `src/shared/ui/`, `src/pages/` e `src/app/styles/`: foco visível, `aria-label`/`aria-modal`, dispensa por teclado, status não dependente apenas de cor e contraste; cobrir com `tests/integration/accessibility.test.jsx` foco do diálogo e dispensa por Enter.
-- [ ] T099 [P] Refinar identidade visual em `src/app/styles/tokens.css`, `animations.css` e CSS Modules das páginas: atmosfera sombria, vinheta/névoa, hierarquia legível e comportamento com `prefers-reduced-motion`; validar que nenhuma informação depende de animação.
-- [ ] T100 [P] Criar `tests/unit/architecture.test.js` verificando que `src/entities/match/model/matchEngine.js` não importa React, `fetch` ou repositórios, que `src/shared` não importa camadas internas e que features não importam outras features; corrigir violações encontradas.
-- [ ] T101 Escrever `tests/integration/persistenceConsistency.test.jsx` verificando que apenas CRUD de participantes e um único `PUT` final de partida são enviados, que ações noturnas/investigações/votos não são persistidos e que recarregar/abandonar uma partida em andamento não cria registro órfão.
-- [ ] T102 Atualizar `README.md` em português com pré-requisitos, `npm run dev:all`, `npm run dev:api`, `npm test`, `npm run lint`, `npm run build`, função do `db.json` e limitação de não recuperar partida em andamento após recarregar.
-- [ ] T103 Executar o roteiro manual de `quickstart.md` (seções 4.1 a 4.11) e as verificações de contrato (seções 5.1 e 5.2), incluindo a verificação de SC-001 (configuração de partida válida em até 3 minutos), registrar resultados e corrigir divergências sem ampliar o escopo.
-- [ ] T104 Executar `npm test`, `npm run lint` e `npm run build`, corrigindo todas as falhas; confirmar que nenhum teste unitário depende do JSON Server em execução.
+- [X] T097 [P] Completar `src/shared/config/labels.js` com mensagens em português para todos os códigos de `GameRuleError` e fallback seguro; cobrir com `tests/unit/errorMessages.test.js` a cobertura de todos os códigos e a ausência de mensagens técnicas expostas ao narrador.
+- [X] T098 [P] Revisar acessibilidade em `src/shared/ui/`, `src/pages/` e `src/app/styles/`: foco visível, `aria-label`/`aria-modal`, dispensa por teclado, status não dependente apenas de cor e contraste; cobrir com `tests/integration/accessibility.test.jsx` foco do diálogo e dispensa por Enter.
+- [X] T099 [P] Refinar identidade visual em `src/app/styles/tokens.css`, `animations.css` e CSS Modules das páginas: atmosfera sombria, vinheta/névoa, hierarquia legível e comportamento com `prefers-reduced-motion`; validar que nenhuma informação depende de animação.
+- [X] T100 [P] Criar `tests/unit/architecture.test.js` verificando que `src/entities/match/model/matchEngine.js` não importa React, `fetch` ou repositórios, que `src/shared` não importa camadas internas e que features não importam outras features; corrigir violações encontradas.
+- [X] T101 Escrever `tests/integration/persistenceConsistency.test.jsx` verificando que apenas CRUD de participantes e um único `PUT` final de partida são enviados, que ações noturnas/investigações/votos não são persistidos e que recarregar/abandonar uma partida em andamento não cria registro órfão.
+- [X] T102 Atualizar `README.md` em português com pré-requisitos, `npm run dev:all`, `npm run dev:api`, `npm test`, `npm run lint`, `npm run build`, função do `db.json` e limitação de não recuperar partida em andamento após recarregar.
+- [X] T103 Executar o roteiro manual de `quickstart.md` (seções 4.1 a 4.11) e as verificações de contrato (seções 5.1 e 5.2), incluindo a verificação de SC-001 (configuração de partida válida em até 3 minutos), registrar resultados e corrigir divergências sem ampliar o escopo.
+- [X] T104 Executar `npm test`, `npm run lint` e `npm run build`, corrigindo todas as falhas; confirmar que nenhum teste unitário depende do JSON Server em execução.
 
 **Checkpoint**: regras críticas verificadas, interface validada, build/lint/testes verdes e documentação operacional atualizada.
 

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import styles from './SpecialOverlay.module.css'
 
 /**
@@ -9,12 +10,19 @@ import styles from './SpecialOverlay.module.css'
  * }} props
  */
 export function SpecialOverlay({ title, onDismiss, footerAction = null }) {
+  const overlayRef = useRef(null)
+
+  useEffect(() => {
+    overlayRef.current?.focus()
+  }, [])
+
   function dismiss() {
     onDismiss?.()
   }
 
   return (
     <div
+      ref={overlayRef}
       className={styles.overlay}
       role="dialog"
       aria-modal="true"

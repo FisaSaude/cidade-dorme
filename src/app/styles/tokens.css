@@ -2,19 +2,24 @@
   color-scheme: dark;
 
   --color-bg: #0b0b10;
+  --color-bg-deep: #06060a;
   --color-bg-elevated: #14141c;
   --color-surface: #1a1a24;
   --color-surface-alt: #20202c;
   --color-border: #2e2e3d;
   --color-border-strong: #45455a;
+  --color-fog: rgba(126, 120, 138, 0.08);
 
   --color-text: #e8e3d8;
   --color-text-muted: #a49f95;
+  --color-text-soft: #cfc9bd;
   --color-heading: #f4efe4;
 
   --color-accent: #a01f2e;
   --color-accent-strong: #c5303f;
   --color-accent-soft: rgba(160, 31, 46, 0.18);
+  --color-accent-glow: rgba(197, 48, 63, 0.32);
+  --color-gold: #b99a5b;
 
   --color-success: #2f7d5b;
   --color-warning: #b8862b;
@@ -40,6 +45,7 @@
 
   --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   --focus-ring: 0 0 0 3px rgba(197, 48, 63, 0.65);
 

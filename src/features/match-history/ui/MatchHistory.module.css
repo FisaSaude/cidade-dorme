@@ -149,6 +149,10 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.table tbody tr:hover {
+  background: rgba(160, 31, 46, 0.08);
+}
+
 .table td:first-child {
   color: var(--color-heading);
   font-weight: 600;

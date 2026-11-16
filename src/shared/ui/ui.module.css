@@ -129,6 +129,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px 16px;
+  border: 1px solid transparent;
   border-left: 4px solid transparent;
   border-radius: var(--radius-sm, 6px);
   background: var(--color-surface, #1a1a24);
@@ -136,22 +137,31 @@
 
 .alertTitle {
   font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .alertInfo {
+  border-color: rgba(58, 110, 165, 0.25);
   border-left-color: var(--color-info, #3a6ea5);
+  background: rgba(58, 110, 165, 0.08);
 }
 
 .alertSuccess {
+  border-color: rgba(47, 125, 91, 0.25);
   border-left-color: var(--color-success, #2f7d5b);
+  background: rgba(47, 125, 91, 0.08);
 }
 
 .alertWarning {
+  border-color: rgba(184, 134, 43, 0.28);
   border-left-color: var(--color-warning, #b8862b);
+  background: rgba(184, 134, 43, 0.08);
 }
 
 .alertError {
+  border-color: rgba(192, 64, 64, 0.3);
   border-left-color: var(--color-error, #c04040);
+  background: rgba(192, 64, 64, 0.09);
 }
 
 .empty {
@@ -206,14 +216,35 @@
 }
 
 .dialog {
+  position: relative;
   width: min(480px, 100%);
   padding: 28px;
   border: 1px solid var(--color-border-strong, #45455a);
   border-radius: var(--radius-lg, 18px);
-  background: var(--color-bg-elevated, #14141c);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(32, 32, 44, 0.98),
+      var(--color-bg-elevated, #14141c)
+    );
   box-shadow: var(--shadow-lg, 0 24px 60px rgba(0, 0, 0, 0.5));
   text-align: left;
   animation: cd-rise-in 200ms ease both;
+}
+
+.dialog::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 18%;
+  left: 18%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent-glow, rgba(197, 48, 63, 0.32)),
+    transparent
+  );
 }
 
 .dialogTitle {

@@ -51,6 +51,18 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.table tbody tr:hover {
+  background: rgba(160, 31, 46, 0.08);
+}
+
+.table tbody tr:first-child td:first-child {
+  color: var(--color-gold);
+}
+
+.table tbody tr:first-child .name {
+  color: var(--color-gold);
+}
+
 .position {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
