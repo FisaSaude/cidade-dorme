@@ -1,3 +1,4 @@
+import { HistoryPage } from '@/pages/history/HistoryPage'
 import { LiveMatchPage } from '@/pages/live-match/LiveMatchPage'
 import { MatchSetupPage } from '@/pages/match-setup/MatchSetupPage'
 import { ParticipantsPage } from '@/pages/participants/ParticipantsPage'
@@ -56,7 +57,7 @@ function AppShell() {
     retryPersistMatch,
   } = useMatchSession()
   const { activeScreen, navigate } = useAppNavigation({ hasActiveSession })
-  const { participantRepository } = useAppServices()
+  const { participantRepository, matchRepository } = useAppServices()
   const content = SCREEN_CONTENT[activeScreen] ?? SCREEN_CONTENT[SCREENS.PARTICIPANTS]
   const navItems = hasActiveSession ? ACTIVE_SESSION_NAV_ITEMS : NAV_ITEMS
   const description =
@@ -105,6 +106,12 @@ function AppShell() {
               participantRepository={participantRepository}
               startMatch={startMatch}
               onStarted={() => navigate(SCREENS.LIVE_MATCH)}
+            />
+          ) : null}
+          {activeScreen === SCREENS.HISTORY ? (
+            <HistoryPage
+              matchRepository={matchRepository}
+              participantRepository={participantRepository}
             />
           ) : null}
           {activeScreen === SCREENS.LIVE_MATCH ? (

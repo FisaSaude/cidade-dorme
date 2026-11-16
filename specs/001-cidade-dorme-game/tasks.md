@@ -235,15 +235,15 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 7
 
-- [ ] T086 [P] [US7] Escrever `tests/unit/historyViewModel.test.jsx` cobrindo apenas `FINISHED`, ordenação por `endedAt` decrescente, detalhe com papéis/status/turnos/resultado, manual sem vencedor e resolução do nome atual.
-- [ ] T087 [US7] Escrever `tests/integration/history.test.jsx` cobrindo estado vazio, lista, detalhe, encerramento manual, documento com status diferente de `FINISHED` ignorado defensivamente e nome editado refletido.
+- [X] T086 [P] [US7] Escrever `tests/unit/historyViewModel.test.jsx` cobrindo apenas `FINISHED`, ordenação por `endedAt` decrescente, detalhe com papéis/status/turnos/resultado, manual sem vencedor e resolução do nome atual.
+- [X] T087 [US7] Escrever `tests/integration/history.test.jsx` cobrindo estado vazio, lista, detalhe, encerramento manual, documento com status diferente de `FINISHED` ignorado defensivamente e nome editado refletido.
 
 ### Implementation for User Story 7
 
-- [ ] T088 [US7] Implementar `src/features/match-history/model/history.js` derivando lista/detalhe, resolvendo `participantId` para nome atual, formatando datas e rótulos de resultado/closure.
-- [ ] T089 [US7] Implementar `src/pages/history/useHistoryViewModel.js` carregando partidas finalizadas e participantes via `useAsyncData`, com seleção de detalhe, loading, erro e vazio.
-- [ ] T090 [US7] Implementar `src/features/match-history/ui/MatchHistoryList.jsx` e `MatchHistoryDetail.jsx` e compor `src/pages/history/HistoryPage.jsx`.
-- [ ] T091 [US7] Adicionar a tela de histórico a `src/app/navigation/screens.js` e ao shell em `src/app/App.jsx`, verificando que partidas em andamento não aparecem.
+- [X] T088 [US7] Implementar `src/features/match-history/model/history.js` derivando lista/detalhe, resolvendo `participantId` para nome atual, formatando datas e rótulos de resultado/closure.
+- [X] T089 [US7] Implementar `src/pages/history/useHistoryViewModel.js` carregando partidas finalizadas e participantes via `useAsyncData`, com seleção de detalhe, loading, erro e vazio.
+- [X] T090 [US7] Implementar `src/features/match-history/ui/MatchHistoryList.jsx` e `MatchHistoryDetail.jsx` e compor `src/pages/history/HistoryPage.jsx`.
+- [X] T091 [US7] Adicionar a tela de histórico a `src/app/navigation/screens.js` e ao shell em `src/app/App.jsx`, verificando que partidas em andamento não aparecem.
 
 **Checkpoint**: histórico completo e consistente com os dados persistidos.
 
