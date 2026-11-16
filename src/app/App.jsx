@@ -2,6 +2,7 @@ import { HistoryPage } from '@/pages/history/HistoryPage'
 import { LiveMatchPage } from '@/pages/live-match/LiveMatchPage'
 import { MatchSetupPage } from '@/pages/match-setup/MatchSetupPage'
 import { ParticipantsPage } from '@/pages/participants/ParticipantsPage'
+import { RankingPage } from '@/pages/ranking/RankingPage'
 import {
   ACTIVE_SESSION_NAV_ITEMS,
   NAV_ITEMS,
@@ -110,6 +111,12 @@ function AppShell() {
           ) : null}
           {activeScreen === SCREENS.HISTORY ? (
             <HistoryPage
+              matchRepository={matchRepository}
+              participantRepository={participantRepository}
+            />
+          ) : null}
+          {activeScreen === SCREENS.RANKING ? (
+            <RankingPage
               matchRepository={matchRepository}
               participantRepository={participantRepository}
             />

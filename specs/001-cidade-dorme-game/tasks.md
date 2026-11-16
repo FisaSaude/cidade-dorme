@@ -257,14 +257,14 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 8
 
-- [ ] T092 [P] [US8] Escrever `tests/unit/ranking.test.js` cobrindo todos os cadastrados inclusive zero, sobrevivência para `ALIVE` em partida `FINISHED`, mortos excluídos, encerramento manual contabilizado, partida em andamento ignorada e desempate por `Intl.Collator('pt-BR', { sensitivity: 'base' })`.
-- [ ] T093 [US8] Escrever `tests/integration/ranking.test.jsx` cobrindo vitória + encerramento manual, ordem/contagem, participantes com zero, partida em andamento ignorada e nome editado refletido.
+- [X] T092 [P] [US8] Escrever `tests/unit/ranking.test.js` cobrindo todos os cadastrados inclusive zero, sobrevivência para `ALIVE` em partida `FINISHED`, mortos excluídos, encerramento manual contabilizado, partida em andamento ignorada e desempate por `Intl.Collator('pt-BR', { sensitivity: 'base' })`.
+- [X] T093 [US8] Escrever `tests/integration/ranking.test.jsx` cobrindo vitória + encerramento manual, ordem/contagem, participantes com zero, partida em andamento ignorada e nome editado refletido.
 
 ### Implementation for User Story 8
 
-- [ ] T094 [US8] Implementar `src/features/participant-ranking/model/ranking.js` com `rankParticipants(participants, matches)` contando apenas `MatchParticipant` `ALIVE` de partidas `FINISHED` e ordenando por contagem decrescente e nome ascendente pt-BR.
-- [ ] T095 [US8] Implementar `src/pages/ranking/useRankingViewModel.js` carregando participantes e partidas finalizadas com `useAsyncData`, derivando linhas e tratando loading/erro/vazio.
-- [ ] T096 [US8] Implementar `src/features/participant-ranking/ui/RankingTable.jsx` e `src/pages/ranking/RankingPage.jsx`; adicionar a tela a `src/app/navigation/screens.js` e ao shell em `src/app/App.jsx`.
+- [X] T094 [US8] Implementar `src/features/participant-ranking/model/ranking.js` com `rankParticipants(participants, matches)` contando apenas `MatchParticipant` `ALIVE` de partidas `FINISHED` e ordenando por contagem decrescente e nome ascendente pt-BR.
+- [X] T095 [US8] Implementar `src/pages/ranking/useRankingViewModel.js` carregando participantes e partidas finalizadas com `useAsyncData`, derivando linhas e tratando loading/erro/vazio.
+- [X] T096 [US8] Implementar `src/features/participant-ranking/ui/RankingTable.jsx` e `src/pages/ranking/RankingPage.jsx`; adicionar a tela a `src/app/navigation/screens.js` e ao shell em `src/app/App.jsx`.
 
 **Checkpoint**: ranking derivado, sem persistência duplicada e coerente com histórico.
 
