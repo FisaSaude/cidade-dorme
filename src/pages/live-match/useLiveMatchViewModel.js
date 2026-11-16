@@ -1,7 +1,13 @@
 import { useCallback, useMemo, useState } from 'react'
 import { MatchPhase } from '@/entities/match/model/matchPhases'
+import {
+  getAliveParticipants,
+  getDeadParticipants,
+} from '@/entities/match/model/matchSession'
+import { MatchStatus } from '@/entities/match/model/matchStatus'
 import { getGameRuleErrorMessage } from '@/shared/config/labels'
-import { GameRuleError } from '@/shared/lib/errors'
+import { formatDateTimePtBr } from '@/shared/lib/date'
+import { ApiError, GameRuleError } from '@/shared/lib/errors'
 import { useAsyncData } from '@/shared/lib/useAsyncData'
 import { getAssassinRows } from '@/features/assassins-phase/model/assassinRows'
 import { getDawnResult } from '@/features/dawn-and-voting/model/dawnResult'
@@ -26,6 +32,18 @@ function toMessage(error) {
     return getGameRuleErrorMessage(error.code)
   }
   return 'Não foi possível concluir a operação. Tente novamente.'
+}
+
+function toPersistenceMessage(error) {
+  if (!error) {
+    return ''
+  }
+
+  if (error instanceof ApiError) {
+    return error.message
+  }
+
+  return 'Não foi possível salvar a partida. Tente novamente.'
 }
 
 export function useLiveMatchViewModel({ session, participantRepository, actions }) {
@@ -55,6 +73,41 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
     () => (session ? getVotingOptions(session, participantNames) : []),
     [participantNames, session],
   )
+  const finalResult = useMemo(() => {
+    if (!session || session.match.status !== MatchStatus.FINISHED) {
+      return null
+    }
+
+    const resolveName = (participantId) =>
+      participantNames[participantId] ?? 'Participante sem nome'
+
+    return {
+      winner: session.match.winner,
+      closureReason: session.match.closureReason,
+      turnCount: session.match.turnCount,
+      endedAt: session.match.endedAt,
+      endedAtLabel: session.match.endedAt
+        ? formatDateTimePtBr(session.match.endedAt)
+        : '',
+      survivors: getAliveParticipants(session).map((participant) => ({
+        participantId: participant.participantId,
+        name: resolveName(participant.participantId),
+        role: participant.role,
+      })),
+      eliminated: getDeadParticipants(session).map((participant) => ({
+        participantId: participant.participantId,
+        name: resolveName(participant.participantId),
+        role: participant.role,
+        eliminatedAt: participant.eliminatedAt,
+      })),
+    }
+  }, [participantNames, session])
+
+  const persistence = {
+    state: actions.persistence?.state ?? 'idle',
+    error: toPersistenceMessage(actions.persistence?.error),
+    savedMatchId: actions.persistence?.savedMatchId ?? null,
+  }
 
   const viewActions = {
     dismissAnnouncement: () => {
@@ -113,6 +166,14 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
         setError(toMessage(actionError))
       }
     },
+    retryPersistMatch: () => {
+      try {
+        setError('')
+        actions.retryPersistMatch?.()
+      } catch (actionError) {
+        setError(toMessage(actionError))
+      }
+    },
   }
 
   return {
@@ -122,6 +183,8 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
       detectiveRows,
       dawnResult,
       votingOptions,
+      finalResult,
+      persistence,
       nextStepLabel: session ? NEXT_STEP_BY_PHASE[session.phase] ?? '' : '',
       error,
       assassinTargets: session?.assassinTargets ?? {},

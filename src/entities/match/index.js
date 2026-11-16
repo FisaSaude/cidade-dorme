@@ -35,3 +35,10 @@ export {
   getEligibleTargets,
   getParticipantById,
 } from './model/matchSession'
+
+export {
+  createMatchRepository,
+  matchRepository,
+} from './api/matchRepository'
+
+export { default as MatchOutcomeBadge } from './ui/MatchOutcomeBadge'

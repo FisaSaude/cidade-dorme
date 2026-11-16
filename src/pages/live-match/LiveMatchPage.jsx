@@ -7,6 +7,7 @@ import { SpecialAnnouncement } from '@/features/special-announcement/ui/SpecialA
 import { Alert } from '@/shared/ui/Alert'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { MatchStatusBar } from '@/widgets/match-status-bar/MatchStatusBar'
+import { MatchSummary } from '@/widgets/match-summary/MatchSummary'
 import { useLiveMatchViewModel } from './useLiveMatchViewModel'
 import styles from './LiveMatchPage.module.css'
 
@@ -24,6 +25,8 @@ import styles from './LiveMatchPage.module.css'
  *     resolveDetectivesPhase?: () => void,
  *     startVoting?: () => void,
  *     registerVote?: (result: object) => void,
+ *     retryPersistMatch?: () => void,
+ *     persistence?: { state?: string, error?: unknown, savedMatchId?: string | null },
  *   },
  * }} props
  */
@@ -57,6 +60,14 @@ export function LiveMatchPage({
       <MatchStatusBar session={session} nextStepLabel={viewState.nextStepLabel} />
 
       {viewState.error ? <Alert tone="error" title={viewState.error} /> : null}
+
+      {session.phase === MatchPhase.FINISHED && viewState.finalResult ? (
+        <MatchSummary
+          result={viewState.finalResult}
+          persistence={viewState.persistence}
+          onRetry={vmActions.retryPersistMatch}
+        />
+      ) : null}
 
       {session.phase === MatchPhase.ASSASSINS_ACTIONS ? (
         <AssassinsPhasePanel

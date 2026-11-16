@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import { matchRepository } from '@/entities/match'
 import { participantRepository } from '@/entities/participant'
 import { nowIso } from '@/shared/lib/date'
 import { createId } from '@/shared/lib/id'
@@ -11,6 +12,7 @@ export const DEFAULT_APP_SERVICES = Object.freeze({
   idFactory: createId,
   now: nowIso,
   participantRepository,
+  matchRepository,
 })
 
 export const AppServicesContext = createContext(null)

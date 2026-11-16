@@ -189,17 +189,17 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 5
 
-- [ ] T072 [P] [US5] Escrever `tests/unit/matchRepository.test.js` cobrindo listagem `GET /matches?status=FINISHED&_sort=endedAt&_order=desc`, consulta por ID com `404` → `ApiError`, `saveFinishedMatch` via `PUT /matches/:id` com `MatchParticipant` embutidos, retry com o mesmo corpo sem duplicar e validação mínima de resposta.
-- [ ] T073 [US5] Escrever `tests/unit/matchVictory.test.js` cobrindo último assassino eliminado à noite e na votação, paridade, superioridade, ausência de detetives/votação após vitória noturna, contagem do turno decisivo e ausência de novo turno após vitória na votação.
-- [ ] T074 [US5] Escrever `tests/integration/resultPersistence.test.jsx` cobrindo resultado na mesma interação, vencedor identificado, gravação uma única vez ao entrar em `FINISHED`, nenhuma gravação antes do fim, falha com aviso e "Tentar novamente".
+- [X] T072 [P] [US5] Escrever `tests/unit/matchRepository.test.js` cobrindo listagem `GET /matches?status=FINISHED&_sort=endedAt&_order=desc`, consulta por ID com `404` → `ApiError`, `saveFinishedMatch` via `PUT /matches/:id` com `MatchParticipant` embutidos, retry com o mesmo corpo sem duplicar e validação mínima de resposta.
+- [X] T073 [US5] Escrever `tests/unit/matchVictory.test.js` cobrindo último assassino eliminado à noite e na votação, paridade, superioridade, ausência de detetives/votação após vitória noturna, contagem do turno decisivo e ausência de novo turno após vitória na votação.
+- [X] T074 [US5] Escrever `tests/integration/resultPersistence.test.jsx` cobrindo resultado na mesma interação, vencedor identificado, gravação uma única vez ao entrar em `FINISHED`, nenhuma gravação antes do fim, falha com aviso e "Tentar novamente".
 
 ### Implementation for User Story 5
 
-- [ ] T075 [US5] Implementar `src/entities/match/api/matchRepository.js` com `listFinished`, `getById` e `saveFinishedMatch` (`PUT` idempotente, `id` no corpo e na URL), validação mínima das respostas e `ApiError`; exportar por `src/entities/match/index.js`.
-- [ ] T076 [US5] Implementar `src/entities/match/ui/MatchOutcomeBadge.jsx` e `src/widgets/match-summary/MatchSummary.jsx` com vencedor, sobreviventes, eliminados, `turnCount`, `closureReason` e estado de persistência.
-- [ ] T077 [US5] Estender `src/app/providers/MatchSessionProvider.jsx` com persistência ao entrar em `FINISHED` uma única vez, `savedMatchId`, estados `idle/saving/saved/error` e ação de retry; estender `src/app/providers/AppProviders.jsx` com `matchRepository`.
-- [ ] T078 [US5] Estender `src/pages/live-match/useLiveMatchViewModel.js` com resultado final, vencedor, sobreviventes, estado de persistência e mensagens de erro/retry.
-- [ ] T079 [US5] Implementar a visão de resultado em `src/pages/live-match/LiveMatchPage.jsx` com `MatchOutcomeBadge` e `MatchSummary`, sem confirmação adicional e mantendo o resultado visível em caso de falha de gravação.
+- [X] T075 [US5] Implementar `src/entities/match/api/matchRepository.js` com `listFinished`, `getById` e `saveFinishedMatch` (`PUT` idempotente, `id` no corpo e na URL), validação mínima das respostas e `ApiError`; exportar por `src/entities/match/index.js`.
+- [X] T076 [US5] Implementar `src/entities/match/ui/MatchOutcomeBadge.jsx` e `src/widgets/match-summary/MatchSummary.jsx` com vencedor, sobreviventes, eliminados, `turnCount`, `closureReason` e estado de persistência.
+- [X] T077 [US5] Estender `src/app/providers/MatchSessionProvider.jsx` com persistência ao entrar em `FINISHED` uma única vez, `savedMatchId`, estados `idle/saving/saved/error` e ação de retry; estender `src/app/providers/AppProviders.jsx` com `matchRepository`.
+- [X] T078 [US5] Estender `src/pages/live-match/useLiveMatchViewModel.js` com resultado final, vencedor, sobreviventes, estado de persistência e mensagens de erro/retry.
+- [X] T079 [US5] Implementar a visão de resultado em `src/pages/live-match/LiveMatchPage.jsx` com `MatchOutcomeBadge` e `MatchSummary`, sem confirmação adicional e mantendo o resultado visível em caso de falha de gravação.
 
 **Checkpoint**: vitória automática perceptível e partida finalizada persistida de forma idempotente.
 
