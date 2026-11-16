@@ -40,7 +40,16 @@ const SCREEN_CONTENT = {
 }
 
 function AppShell() {
-  const { session, hasActiveSession, startMatch } = useMatchSession()
+  const {
+    session,
+    hasActiveSession,
+    startMatch,
+    dismissAnnouncement,
+    setAssassinTarget,
+    resolveAssassinsPhase,
+    setInvestigation,
+    resolveDetectivesPhase,
+  } = useMatchSession()
   const { activeScreen, navigate } = useAppNavigation({ hasActiveSession })
   const { participantRepository } = useAppServices()
   const content = SCREEN_CONTENT[activeScreen] ?? SCREEN_CONTENT[SCREENS.PARTICIPANTS]
@@ -94,7 +103,17 @@ function AppShell() {
             />
           ) : null}
           {activeScreen === SCREENS.LIVE_MATCH ? (
-            <LiveMatchPage session={session} />
+            <LiveMatchPage
+              session={session}
+              participantRepository={participantRepository}
+              actions={{
+                dismissAnnouncement,
+                setAssassinTarget,
+                resolveAssassinsPhase,
+                setInvestigation,
+                resolveDetectivesPhase,
+              }}
+            />
           ) : null}
         </section>
       </main>

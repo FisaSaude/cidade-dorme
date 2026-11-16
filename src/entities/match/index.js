@@ -1,4 +1,11 @@
-export { createMatchSession } from './model/matchEngine'
+export {
+  createMatchSession,
+  dismissAnnouncement,
+  setAssassinTarget,
+  resolveAssassinsPhase,
+  setInvestigation,
+  resolveDetectivesPhase,
+} from './model/matchEngine'
 
 export {
   MIN_PARTICIPANTS,

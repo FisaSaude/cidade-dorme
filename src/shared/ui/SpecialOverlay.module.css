@@ -1,0 +1,45 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: rgba(4, 4, 8, 0.86);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-dialog, 1100);
+}
+
+.dialog {
+  width: min(680px, 100%);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  color: var(--color-heading);
+}
+
+.hint {
+  margin: var(--space-3) 0 0;
+  color: var(--color-text-muted);
+}
+
+.footer {
+  margin-top: var(--space-5);
+  display: flex;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .dialog {
+    animation: none;
+    transition: none;
+  }
+}

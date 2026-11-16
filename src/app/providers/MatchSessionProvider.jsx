@@ -1,5 +1,13 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { createMatchSession, MatchStatus } from '@/entities/match'
+import {
+  createMatchSession,
+  dismissAnnouncement,
+  MatchStatus,
+  resolveAssassinsPhase,
+  resolveDetectivesPhase,
+  setAssassinTarget,
+  setInvestigation,
+} from '@/entities/match'
 import { useAppServices } from './appServices'
 
 export const MatchSessionContext = createContext(null)
@@ -30,9 +38,66 @@ export function MatchSessionProvider({ children }) {
     session && session.match.status === MatchStatus.IN_PROGRESS,
   )
 
+  const runSessionCommand = useCallback((command) => {
+    let nextSnapshot = null
+    setSession((current) => {
+      if (!current) {
+        return current
+      }
+      nextSnapshot = command(current)
+      return nextSnapshot
+    })
+    return nextSnapshot
+  }, [])
+
+  const dismissCurrentAnnouncement = useCallback(
+    () => runSessionCommand((current) => dismissAnnouncement(current)),
+    [runSessionCommand],
+  )
+
+  const setCurrentAssassinTarget = useCallback(
+    (actorId, targetId) =>
+      runSessionCommand((current) => setAssassinTarget(current, actorId, targetId)),
+    [runSessionCommand],
+  )
+
+  const resolveCurrentAssassinsPhase = useCallback(
+    () => runSessionCommand((current) => resolveAssassinsPhase(current, now())),
+    [now, runSessionCommand],
+  )
+
+  const setCurrentInvestigation = useCallback(
+    (detectiveId, targetId) =>
+      runSessionCommand((current) => setInvestigation(current, detectiveId, targetId)),
+    [runSessionCommand],
+  )
+
+  const resolveCurrentDetectivesPhase = useCallback(
+    () => runSessionCommand((current) => resolveDetectivesPhase(current)),
+    [runSessionCommand],
+  )
+
   const value = useMemo(
-    () => ({ session, hasActiveSession, startMatch }),
-    [hasActiveSession, session, startMatch],
+    () => ({
+      session,
+      hasActiveSession,
+      startMatch,
+      dismissAnnouncement: dismissCurrentAnnouncement,
+      setAssassinTarget: setCurrentAssassinTarget,
+      resolveAssassinsPhase: resolveCurrentAssassinsPhase,
+      setInvestigation: setCurrentInvestigation,
+      resolveDetectivesPhase: resolveCurrentDetectivesPhase,
+    }),
+    [
+      dismissCurrentAnnouncement,
+      hasActiveSession,
+      resolveCurrentAssassinsPhase,
+      resolveCurrentDetectivesPhase,
+      session,
+      setCurrentAssassinTarget,
+      setCurrentInvestigation,
+      startMatch,
+    ],
   )
 
   return (

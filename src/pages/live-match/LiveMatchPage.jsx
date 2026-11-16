@@ -1,14 +1,39 @@
-import { PlayerStatus } from '@/entities/match-participant/model/playerStatus'
-import { matchPhaseLabels } from '@/shared/config/labels'
+import { MatchPhase } from '@/entities/match/model/matchPhases'
+import { AssassinsPhasePanel } from '@/features/assassins-phase/ui/AssassinsPhasePanel'
+import { DetectivesPhasePanel } from '@/features/detectives-phase/ui/DetectivesPhasePanel'
+import { SpecialAnnouncement } from '@/features/special-announcement/ui/SpecialAnnouncement'
+import { Alert } from '@/shared/ui/Alert'
 import { EmptyState } from '@/shared/ui/EmptyState'
+import { MatchStatusBar } from '@/widgets/match-status-bar/MatchStatusBar'
+import { useLiveMatchViewModel } from './useLiveMatchViewModel'
 import styles from './LiveMatchPage.module.css'
 
 /**
  * Visão mínima da partida em andamento. As fases completas são adicionadas
  * pelas histórias de condução do turno.
- * @param {{ session: object | null }} props
+ * @param {{
+ *   session: object | null,
+ *   participantRepository?: { list: () => Promise<Array<{ id: string, name: string }>> },
+ *   actions?: {
+ *     dismissAnnouncement?: () => void,
+ *     setAssassinTarget?: (actorId: string, targetId: string | null) => void,
+ *     resolveAssassinsPhase?: () => void,
+ *     setInvestigation?: (detectiveId: string, targetId: string | null) => void,
+ *     resolveDetectivesPhase?: () => void,
+ *   },
+ * }} props
  */
-export function LiveMatchPage({ session }) {
+export function LiveMatchPage({
+  session,
+  participantRepository = { list: async () => [] },
+  actions = {},
+}) {
+  const { viewState, actions: vmActions } = useLiveMatchViewModel({
+    session,
+    participantRepository,
+    actions,
+  })
+
   if (!session) {
     return (
       <EmptyState
@@ -18,32 +43,41 @@ export function LiveMatchPage({ session }) {
     )
   }
 
-  const { match, currentTurn, phase } = session
-  const aliveCount = match.participants.filter(
-    (participant) => participant.status === PlayerStatus.ALIVE,
-  ).length
+  const isAnnouncement = Boolean(viewState.announcement)
 
   return (
     <section className={styles.page} aria-labelledby="live-match-status-title">
       <h2 id="live-match-status-title" className={styles.title}>
         Partida em andamento
       </h2>
-      <dl className={styles.status}>
-        <div className={styles.item}>
-          <dt>Turno</dt>
-          <dd>{currentTurn}</dd>
-        </div>
-        <div className={styles.item}>
-          <dt>Fase</dt>
-          <dd>{matchPhaseLabels[phase] ?? phase}</dd>
-        </div>
-        <div className={styles.item}>
-          <dt>Vivos</dt>
-          <dd>
-            {aliveCount} de {match.participants.length}
-          </dd>
-        </div>
-      </dl>
+      <MatchStatusBar session={session} nextStepLabel={viewState.nextStepLabel} />
+
+      {viewState.error ? <Alert tone="error" title={viewState.error} /> : null}
+
+      {session.phase === MatchPhase.ASSASSINS_ACTIONS ? (
+        <AssassinsPhasePanel
+          rows={viewState.assassinRows}
+          selectedTargets={viewState.assassinTargets}
+          onChangeTarget={vmActions.setAssassinTarget}
+          onResolve={vmActions.resolveAssassinsPhase}
+        />
+      ) : null}
+
+      {session.phase === MatchPhase.DETECTIVES_ACTIONS ? (
+        <DetectivesPhasePanel
+          rows={viewState.detectiveRows}
+          selectedInvestigations={viewState.investigations}
+          onChangeTarget={vmActions.setInvestigation}
+          onResolve={vmActions.resolveDetectivesPhase}
+        />
+      ) : null}
+
+      {isAnnouncement ? (
+        <SpecialAnnouncement
+          phase={session.phase}
+          onDismiss={vmActions.dismissAnnouncement}
+        />
+      ) : null}
     </section>
   )
 }
