@@ -1,7 +1,18 @@
+import { LiveMatchPage } from '@/pages/live-match/LiveMatchPage'
+import { MatchSetupPage } from '@/pages/match-setup/MatchSetupPage'
 import { ParticipantsPage } from '@/pages/participants/ParticipantsPage'
-import { NAV_ITEMS, SCREEN_LABELS, SCREENS } from './navigation/screens'
+import {
+  ACTIVE_SESSION_NAV_ITEMS,
+  NAV_ITEMS,
+  SCREEN_LABELS,
+  SCREENS,
+} from './navigation/screens'
 import { useAppNavigation } from './navigation/useAppNavigation'
 import { useAppServices } from './providers/appServices'
+import {
+  MatchSessionProvider,
+  useMatchSession,
+} from './providers/MatchSessionProvider'
 import styles from './App.module.css'
 
 const SCREEN_CONTENT = {
@@ -28,10 +39,16 @@ const SCREEN_CONTENT = {
   },
 }
 
-function App() {
-  const { activeScreen, navigate } = useAppNavigation()
+function AppShell() {
+  const { session, hasActiveSession, startMatch } = useMatchSession()
+  const { activeScreen, navigate } = useAppNavigation({ hasActiveSession })
   const { participantRepository } = useAppServices()
   const content = SCREEN_CONTENT[activeScreen] ?? SCREEN_CONTENT[SCREENS.PARTICIPANTS]
+  const navItems = hasActiveSession ? ACTIVE_SESSION_NAV_ITEMS : NAV_ITEMS
+  const description =
+    activeScreen === SCREENS.LIVE_MATCH && session
+      ? `Turno ${session.currentTurn} em andamento.`
+      : content.description
 
   return (
     <div className={styles.shell}>
@@ -46,7 +63,7 @@ function App() {
           </div>
         </div>
         <nav className={styles.nav} aria-label="Navegação principal">
-          {NAV_ITEMS.map((screen) => {
+          {navItems.map((screen) => {
             const isActive = activeScreen === screen
             return (
               <button
@@ -65,9 +82,19 @@ function App() {
       <main className={styles.main}>
         <section className={styles.screen} aria-labelledby="screen-title">
           <h1 id="screen-title">{content.title}</h1>
-          <p className={styles.screenSubtitle}>{content.description}</p>
+          <p className={styles.screenSubtitle}>{description}</p>
           {activeScreen === SCREENS.PARTICIPANTS ? (
             <ParticipantsPage participantRepository={participantRepository} />
+          ) : null}
+          {activeScreen === SCREENS.MATCH_SETUP ? (
+            <MatchSetupPage
+              participantRepository={participantRepository}
+              startMatch={startMatch}
+              onStarted={() => navigate(SCREENS.LIVE_MATCH)}
+            />
+          ) : null}
+          {activeScreen === SCREENS.LIVE_MATCH ? (
+            <LiveMatchPage session={session} />
           ) : null}
         </section>
       </main>
@@ -75,6 +102,14 @@ function App() {
         Cidade Dorme — aplicação local de apoio ao narrador.
       </footer>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <MatchSessionProvider>
+      <AppShell />
+    </MatchSessionProvider>
   )
 }
 

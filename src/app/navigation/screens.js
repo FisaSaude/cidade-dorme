@@ -23,6 +23,13 @@ export const NAV_ITEMS = Object.freeze([
   SCREENS.RANKING,
 ])
 
+export const ACTIVE_SESSION_NAV_ITEMS = Object.freeze([
+  SCREENS.PARTICIPANTS,
+  SCREENS.LIVE_MATCH,
+  SCREENS.HISTORY,
+  SCREENS.RANKING,
+])
+
 /**
  * @param {unknown} value
  * @returns {boolean}

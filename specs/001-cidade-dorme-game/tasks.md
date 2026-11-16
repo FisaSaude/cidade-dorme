@@ -104,20 +104,20 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 2
 
-- [ ] T036 [P] [US2] Escrever `tests/unit/matchConfiguration.test.js` cobrindo `MIN_PARTICIPANTS` para menos de cinco, `NO_ASSASSIN`, `DUPLICATE_PARTICIPANT`, `INVALID_ROLE`, papel ausente normalizado para `INNOCENT` e um único papel por `participantId`.
-- [ ] T037 [P] [US2] Escrever `tests/unit/matchEngine.create.test.js` cobrindo a sessão inicial com `phase = TURN_START`, `currentTurn = 1`, `turnCount = 0`, `status = IN_PROGRESS`, todos `ALIVE` com `eliminatedAt: null`, `MatchParticipant.id` únicos e rejeição de configurações inválidas pelos códigos do contrato. Incluir configuração com todos os participantes assassinos resultando em vitória dos assassinos após a primeira resolução noturna (D7).
-- [ ] T038 [US2] Escrever `tests/unit/useMatchSetupViewModel.test.jsx` cobrindo seleção, atribuição de um papel por participante, contagens, bloqueios traduzidos em português e início de sessão válida.
+- [X] T036 [P] [US2] Escrever `tests/unit/matchConfiguration.test.js` cobrindo `MIN_PARTICIPANTS` para menos de cinco, `NO_ASSASSIN`, `DUPLICATE_PARTICIPANT`, `INVALID_ROLE`, papel ausente normalizado para `INNOCENT` e um único papel por `participantId`.
+- [X] T037 [P] [US2] Escrever `tests/unit/matchEngine.create.test.js` cobrindo a sessão inicial com `phase = TURN_START`, `currentTurn = 1`, `turnCount = 0`, `status = IN_PROGRESS`, todos `ALIVE` com `eliminatedAt: null`, `MatchParticipant.id` únicos e rejeição de configurações inválidas pelos códigos do contrato. Incluir configuração com todos os participantes assassinos resultando em vitória dos assassinos após a primeira resolução noturna (D7).
+- [X] T038 [US2] Escrever `tests/unit/useMatchSetupViewModel.test.jsx` cobrindo seleção, atribuição de um papel por participante, contagens, bloqueios traduzidos em português e início de sessão válida.
 
 ### Implementation for User Story 2
 
-- [ ] T039 [US2] Implementar `src/entities/match/model/matchConfiguration.js` construindo a configuração `{ participants: [{ participantId, role }] }`, aplicando `INNOCENT` como padrão e validando as regras da seção 8 de `data-model.md`.
-- [ ] T040 [US2] Implementar `createMatchSession(configuration, context)` em `src/entities/match/model/matchEngine.js` validando `participants.length >= 5`, pelo menos um `ASSASSIN`, papéis válidos e `participantId` único; criar `Match` com `turnCount = 0`, `currentTurn = 1`, todos `ALIVE` e `eliminatedAt: null`; exportar por `src/entities/match/index.js`.
-- [ ] T041 [US2] Implementar `src/features/match-configuration/model/matchSetup.js` e `src/features/match-configuration/ui/MatchSetupForm.jsx` com seleção de participantes, seletor único de papel por participante, resumo de contagens e mensagens de bloqueio; sem sorteio.
-- [ ] T042 [US2] Implementar `src/pages/match-setup/useMatchSetupViewModel.js` carregando participantes, gerenciando seleção/papéis, chamando a validação do domínio, traduzindo `GameRuleError` e iniciando a partida.
-- [ ] T043 [US2] Implementar `src/pages/match-setup/MatchSetupPage.jsx` com formulário, resumo, botão de início desabilitado por bloqueio, mensagens explicativas e navegação para a partida.
-- [ ] T044 [US2] Implementar `src/app/providers/MatchSessionProvider.jsx` com estado da sessão, `startMatch(configuration)` usando `createMatchSession`, `idFactory` e `now` injetados, e indicação de sessão ativa; cobrir com `tests/unit/MatchSessionProvider.test.jsx`.
-- [ ] T045 [US2] Criar `src/pages/live-match/LiveMatchPage.jsx` mínimo exibindo turno e fase da sessão criada e bloquear nova configuração enquanto houver sessão ativa, integrando `useAppNavigation` ao provider.
-- [ ] T046 [US2] Escrever `tests/integration/matchSetup.test.jsx` cobrindo bloqueio com menos de cinco, bloqueio sem assassino, configuração sem detetive permitida, início válido com inocentes e todos vivos, e ausência de sorteio automático.
+- [X] T039 [US2] Implementar `src/entities/match/model/matchConfiguration.js` construindo a configuração `{ participants: [{ participantId, role }] }`, aplicando `INNOCENT` como padrão e validando as regras da seção 8 de `data-model.md`.
+- [X] T040 [US2] Implementar `createMatchSession(configuration, context)` em `src/entities/match/model/matchEngine.js` validando `participants.length >= 5`, pelo menos um `ASSASSIN`, papéis válidos e `participantId` único; criar `Match` com `turnCount = 0`, `currentTurn = 1`, todos `ALIVE` e `eliminatedAt: null`; exportar por `src/entities/match/index.js`.
+- [X] T041 [US2] Implementar `src/features/match-configuration/model/matchSetup.js` e `src/features/match-configuration/ui/MatchSetupForm.jsx` com seleção de participantes, seletor único de papel por participante, resumo de contagens e mensagens de bloqueio; sem sorteio.
+- [X] T042 [US2] Implementar `src/pages/match-setup/useMatchSetupViewModel.js` carregando participantes, gerenciando seleção/papéis, chamando a validação do domínio, traduzindo `GameRuleError` e iniciando a partida.
+- [X] T043 [US2] Implementar `src/pages/match-setup/MatchSetupPage.jsx` com formulário, resumo, botão de início desabilitado por bloqueio, mensagens explicativas e navegação para a partida.
+- [X] T044 [US2] Implementar `src/app/providers/MatchSessionProvider.jsx` com estado da sessão, `startMatch(configuration)` usando `createMatchSession`, `idFactory` e `now` injetados, e indicação de sessão ativa; cobrir com `tests/unit/MatchSessionProvider.test.jsx`.
+- [X] T045 [US2] Criar `src/pages/live-match/LiveMatchPage.jsx` mínimo exibindo turno e fase da sessão criada e bloquear nova configuração enquanto houver sessão ativa, integrando `useAppNavigation` ao provider.
+- [X] T046 [US2] Escrever `tests/integration/matchSetup.test.jsx` cobrindo bloqueio com menos de cinco, bloqueio sem assassino, configuração sem detetive permitida, início válido com inocentes e todos vivos, e ausência de sorteio automático.
 
 **Checkpoint**: US2 funcional com sessão iniciada em memória e tela mínima de partida.
 
