@@ -57,9 +57,19 @@ export function createParticipantRepository(options = {}) {
     }
 
     const normalizedName = validateParticipantName(name)
-    const updated = await client.patch(`/participants/${id}`, {
-      name: normalizedName,
-    })
+    let updated
+
+    try {
+      updated = await client.patch(`/participants/${id}`, {
+        name: normalizedName,
+      })
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        throw new ApiError('Participante não encontrado', 404, error)
+      }
+
+      throw error
+    }
 
     return assertParticipant(updated)
   }

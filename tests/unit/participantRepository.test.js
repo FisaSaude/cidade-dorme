@@ -90,6 +90,21 @@ describe('participantRepository', () => {
     await expect(repository.list()).rejects.toBe(apiError)
   })
 
+  it('traduz 404 do PATCH em mensagem de participante não encontrado', async () => {
+    const client = createClient()
+    client.patch.mockRejectedValue(
+      new ApiError('O recurso solicitado não foi encontrado.', 404),
+    )
+
+    const repository = createRepository(client)
+
+    await expect(repository.update('missing', { name: 'Ana' })).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 404,
+      message: 'Participante não encontrado',
+    })
+  })
+
   it('bloqueia criação com nome vazio antes de chamar a API', async () => {
     const client = createClient()
     const repository = createRepository(client)

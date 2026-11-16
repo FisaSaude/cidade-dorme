@@ -291,14 +291,14 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 **Purpose**: consolidar as evidências de validação após a implementação, cobrindo contratos, regras de domínio, persistência, acessibilidade e gates de qualidade.
 
-- [ ] T105 [P] Validar os contratos `contracts/match-engine.md` e `contracts/json-server-api.md` contra o motor, repositórios e serviços implementados; corrigir divergências de comando, fase, payload ou status sem ampliar o escopo.
-- [ ] T106 Executar `npm test` e confirmar cobertura das regras críticas de configuração, noite, investigação, votação, vitória, encerramento manual e ranking (plan §7.2), registrando o resultado.
-- [ ] T107 Validar o JSON Server real: proxy `/api`, `PUT` idempotente por partida, ausência de registros órfãos, ausência de recursos de turnos/ações/votos e histórico/ranking apenas com `FINISHED`.
-- [ ] T108 Executar o roteiro de `quickstart.md` (4.1–4.11) e as verificações de contrato (5.1–5.2), registrar evidências e corrigir divergências encontradas.
-- [ ] T109 [P] Validar SC-001 (configuração em até 3 minutos), SC-011 (contraste WCAG AA e tokens do tema escuro) e a dispensa de sobreposições por clique e teclado (T052/T098).
-- [ ] T110 Validar os comportamentos aprovados D3/D5/D7: turno decisivo contabilizado, ação de assassino eliminado aplicada e configuração com todos os assassinos permitida.
-- [ ] T111 Executar `npm run lint` e `npm run build`; confirmar `tests/unit/architecture.test.js` (motor sem React/`fetch` e limites FSD) e registrar os resultados.
-- [ ] T112 Revisar e marcar `checklists/validation.md` e `checklists/requirements.md`; registrar pendências aceitas, incluindo SC-009 como validação pós-entrega.
+- [X] T105 [P] Validar os contratos `contracts/match-engine.md` e `contracts/json-server-api.md` contra o motor, repositórios e serviços implementados; corrigir divergências de comando, fase, payload ou status sem ampliar o escopo.
+- [X] T106 Executar `npm test` e confirmar cobertura das regras críticas de configuração, noite, investigação, votação, vitória, encerramento manual e ranking (plan §7.2), registrando o resultado.
+- [X] T107 Validar o JSON Server real: proxy `/api`, `PUT` idempotente por partida, ausência de registros órfãos, ausência de recursos de turnos/ações/votos e histórico/ranking apenas com `FINISHED`.
+- [X] T108 Executar o roteiro de `quickstart.md` (4.1–4.11) e as verificações de contrato (5.1–5.2), registrar evidências e corrigir divergências encontradas.
+- [X] T109 [P] Validar SC-001 (configuração em até 3 minutos), SC-011 (contraste WCAG AA e tokens do tema escuro) e a dispensa de sobreposições por clique e teclado (T052/T098).
+- [X] T110 Validar os comportamentos aprovados D3/D5/D7: turno decisivo contabilizado, ação de assassino eliminado aplicada e configuração com todos os assassinos permitida.
+- [X] T111 Executar `npm run lint` e `npm run build`; confirmar `tests/unit/architecture.test.js` (motor sem React/`fetch` e limites FSD) e registrar os resultados.
+- [X] T112 Revisar e marcar `checklists/validation.md` e `checklists/requirements.md`; registrar pendências aceitas, incluindo SC-009 como validação pós-entrega.
 
 **Checkpoint**: evidências de validação registradas, checklists revisadas, gates de lint/build/testes verdes e nenhuma divergência de contrato aberta.
 
