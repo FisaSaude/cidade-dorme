@@ -49,6 +49,8 @@ function AppShell() {
     resolveAssassinsPhase,
     setInvestigation,
     resolveDetectivesPhase,
+    startVoting,
+    registerVote,
   } = useMatchSession()
   const { activeScreen, navigate } = useAppNavigation({ hasActiveSession })
   const { participantRepository } = useAppServices()
@@ -112,6 +114,8 @@ function AppShell() {
                 resolveAssassinsPhase,
                 setInvestigation,
                 resolveDetectivesPhase,
+                startVoting,
+                registerVote,
               }}
             />
           ) : null}

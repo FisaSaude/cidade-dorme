@@ -1,5 +1,7 @@
 import { MatchPhase } from '@/entities/match/model/matchPhases'
 import { AssassinsPhasePanel } from '@/features/assassins-phase/ui/AssassinsPhasePanel'
+import { DawnResultPanel } from '@/features/dawn-and-voting/ui/DawnResultPanel'
+import { VotingPanel } from '@/features/dawn-and-voting/ui/VotingPanel'
 import { DetectivesPhasePanel } from '@/features/detectives-phase/ui/DetectivesPhasePanel'
 import { SpecialAnnouncement } from '@/features/special-announcement/ui/SpecialAnnouncement'
 import { Alert } from '@/shared/ui/Alert'
@@ -20,6 +22,8 @@ import styles from './LiveMatchPage.module.css'
  *     resolveAssassinsPhase?: () => void,
  *     setInvestigation?: (detectiveId: string, targetId: string | null) => void,
  *     resolveDetectivesPhase?: () => void,
+ *     startVoting?: () => void,
+ *     registerVote?: (result: object) => void,
  *   },
  * }} props
  */
@@ -69,6 +73,20 @@ export function LiveMatchPage({
           selectedInvestigations={viewState.investigations}
           onChangeTarget={vmActions.setInvestigation}
           onResolve={vmActions.resolveDetectivesPhase}
+        />
+      ) : null}
+
+      {session.phase === MatchPhase.DAWN_RESULT ? (
+        <DawnResultPanel
+          result={viewState.dawnResult}
+          onProceed={vmActions.startVoting}
+        />
+      ) : null}
+
+      {session.phase === MatchPhase.VOTING ? (
+        <VotingPanel
+          options={viewState.votingOptions}
+          onRegisterVote={vmActions.registerVote}
         />
       ) : null}
 

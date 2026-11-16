@@ -4,6 +4,8 @@ import { getGameRuleErrorMessage } from '@/shared/config/labels'
 import { GameRuleError } from '@/shared/lib/errors'
 import { useAsyncData } from '@/shared/lib/useAsyncData'
 import { getAssassinRows } from '@/features/assassins-phase/model/assassinRows'
+import { getDawnResult } from '@/features/dawn-and-voting/model/dawnResult'
+import { getVotingOptions } from '@/features/dawn-and-voting/model/votingOptions'
 import { getDetectiveRows } from '@/features/detectives-phase/model/detectiveRows'
 import { getAnnouncementText } from '@/features/special-announcement/model/announcements'
 
@@ -14,6 +16,9 @@ const NEXT_STEP_BY_PHASE = Object.freeze({
   [MatchPhase.DETECTIVES_ANNOUNCEMENT]: 'Investigações dos detetives',
   [MatchPhase.DETECTIVES_ACTIONS]: 'Cidade acorda',
   [MatchPhase.DAWN_ANNOUNCEMENT]: 'Resultado da noite',
+  [MatchPhase.DAWN_RESULT]: 'Votação',
+  [MatchPhase.VOTING]: 'Próximo turno',
+  [MatchPhase.FINISHED]: 'Partida encerrada',
 })
 
 function toMessage(error) {
@@ -40,6 +45,14 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
   )
   const detectiveRows = useMemo(
     () => (session ? getDetectiveRows(session, participantNames) : []),
+    [participantNames, session],
+  )
+  const dawnResult = useMemo(
+    () => (session ? getDawnResult(session, participantNames) : null),
+    [participantNames, session],
+  )
+  const votingOptions = useMemo(
+    () => (session ? getVotingOptions(session, participantNames) : []),
     [participantNames, session],
   )
 
@@ -84,6 +97,22 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
         setError(toMessage(actionError))
       }
     },
+    startVoting: () => {
+      try {
+        setError('')
+        actions.startVoting()
+      } catch (actionError) {
+        setError(toMessage(actionError))
+      }
+    },
+    registerVote: (result) => {
+      try {
+        setError('')
+        actions.registerVote(result)
+      } catch (actionError) {
+        setError(toMessage(actionError))
+      }
+    },
   }
 
   return {
@@ -91,6 +120,8 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
       announcement,
       assassinRows,
       detectiveRows,
+      dawnResult,
+      votingOptions,
       nextStepLabel: session ? NEXT_STEP_BY_PHASE[session.phase] ?? '' : '',
       error,
       assassinTargets: session?.assassinTargets ?? {},

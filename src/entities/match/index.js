@@ -5,6 +5,8 @@ export {
   resolveAssassinsPhase,
   setInvestigation,
   resolveDetectivesPhase,
+  startVoting,
+  registerVote,
 } from './model/matchEngine'
 
 export {

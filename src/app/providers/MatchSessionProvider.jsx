@@ -3,10 +3,12 @@ import {
   createMatchSession,
   dismissAnnouncement,
   MatchStatus,
+  registerVote,
   resolveAssassinsPhase,
   resolveDetectivesPhase,
   setAssassinTarget,
   setInvestigation,
+  startVoting,
 } from '@/entities/match'
 import { useAppServices } from './appServices'
 
@@ -77,6 +79,17 @@ export function MatchSessionProvider({ children }) {
     [runSessionCommand],
   )
 
+  const startCurrentVoting = useCallback(
+    () => runSessionCommand((current) => startVoting(current)),
+    [runSessionCommand],
+  )
+
+  const registerCurrentVote = useCallback(
+    (result) =>
+      runSessionCommand((current) => registerVote(current, result, now())),
+    [now, runSessionCommand],
+  )
+
   const value = useMemo(
     () => ({
       session,
@@ -87,15 +100,19 @@ export function MatchSessionProvider({ children }) {
       resolveAssassinsPhase: resolveCurrentAssassinsPhase,
       setInvestigation: setCurrentInvestigation,
       resolveDetectivesPhase: resolveCurrentDetectivesPhase,
+      startVoting: startCurrentVoting,
+      registerVote: registerCurrentVote,
     }),
     [
       dismissCurrentAnnouncement,
       hasActiveSession,
+      registerCurrentVote,
       resolveCurrentAssassinsPhase,
       resolveCurrentDetectivesPhase,
       session,
       setCurrentAssassinTarget,
       setCurrentInvestigation,
+      startCurrentVoting,
       startMatch,
     ],
   )

@@ -164,18 +164,18 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 4
 
-- [ ] T064 [P] [US4] Escrever `tests/unit/matchEngine.voting.test.js` cobrindo eliminado vivo com `DEAD` e `eliminatedAt = { turn: currentTurn, phase: "VOTE" }`, empate sem mudança de status, alvo morto (`TARGET_NOT_ALIVE`), segundo resultado (`VOTE_ALREADY_REGISTERED`), vitória após votação, incremento de `turnCount`, novo turno com limpeza de dados temporários, `startVoting` válido em `DAWN_RESULT` e `INVALID_PHASE` em outras fases.
-- [ ] T065 [US4] Escrever `tests/unit/dawnResult.test.js` cobrindo nomes de eliminados, mensagem de nenhuma morte e opções de votação apenas com vivos.
-- [ ] T066 [US4] Escrever `tests/integration/dawnAndVoting.test.jsx` cobrindo sobreposição "Cidade Acorda", resultado nominal/sem mortes, lista de votação sem mortos, empate, eliminado e novo turno.
+- [X] T064 [P] [US4] Escrever `tests/unit/matchEngine.voting.test.js` cobrindo eliminado vivo com `DEAD` e `eliminatedAt = { turn: currentTurn, phase: "VOTE" }`, empate sem mudança de status, alvo morto (`TARGET_NOT_ALIVE`), segundo resultado (`VOTE_ALREADY_REGISTERED`), vitória após votação, incremento de `turnCount`, novo turno com limpeza de dados temporários, `startVoting` válido em `DAWN_RESULT` e `INVALID_PHASE` em outras fases.
+- [X] T065 [US4] Escrever `tests/unit/dawnResult.test.js` cobrindo nomes de eliminados, mensagem de nenhuma morte e opções de votação apenas com vivos.
+- [X] T066 [US4] Escrever `tests/integration/dawnAndVoting.test.jsx` cobrindo sobreposição "Cidade Acorda", resultado nominal/sem mortes, lista de votação sem mortos, empate, eliminado e novo turno.
 
 ### Implementation for User Story 4
 
-- [ ] T067 [US4] Implementar `src/features/dawn-and-voting/model/dawnResult.js` com derivação de eliminados da noite e mensagem "Ninguém foi assassinado nesta noite", e `votingOptions.js` apenas com vivos.
-- [ ] T067a [US4] Implementar `startVoting(session)` em `src/entities/match/model/matchEngine.js`: validar fase `DAWN_RESULT` (senão `INVALID_PHASE`) e transicionar para `VOTING`; exportar por `src/entities/match/index.js`.
-- [ ] T068 [US4] Implementar `registerVote(session, result, endedAt)` em `src/entities/match/model/matchEngine.js` aceitando `{ type: "ELIMINATION", participantId }` com alvo vivo ou `{ type: "TIE" }`, sem votos individuais, avaliando vitória, incrementando `turnCount` e iniciando novo turno ou encerrando.
-- [ ] T069 [US4] Implementar `src/features/dawn-and-voting/ui/DawnResultPanel.jsx` e `VotingPanel.jsx` com eliminados/sem mortes, seleção de vivo ou empate e confirmação; mortos não aparecem e não há interface de votos individuais.
-- [ ] T070 [US4] Estender `src/pages/live-match/useLiveMatchViewModel.js` e `src/app/providers/MatchSessionProvider.jsx` com `startVoting`, `registerVote`, resultados do amanhecer e mensagens em português.
-- [ ] T071 [US4] Integrar `DawnResultPanel` e `VotingPanel` em `src/pages/live-match/LiveMatchPage.jsx`, garantindo que a transição para `FINISHED` assuma a tela imediatamente e que dados do turno não sejam enviados individualmente à API.
+- [X] T067 [US4] Implementar `src/features/dawn-and-voting/model/dawnResult.js` com derivação de eliminados da noite e mensagem "Ninguém foi assassinado nesta noite", e `votingOptions.js` apenas com vivos.
+- [X] T067a [US4] Implementar `startVoting(session)` em `src/entities/match/model/matchEngine.js`: validar fase `DAWN_RESULT` (senão `INVALID_PHASE`) e transicionar para `VOTING`; exportar por `src/entities/match/index.js`.
+- [X] T068 [US4] Implementar `registerVote(session, result, endedAt)` em `src/entities/match/model/matchEngine.js` aceitando `{ type: "ELIMINATION", participantId }` com alvo vivo ou `{ type: "TIE" }`, sem votos individuais, avaliando vitória, incrementando `turnCount` e iniciando novo turno ou encerrando.
+- [X] T069 [US4] Implementar `src/features/dawn-and-voting/ui/DawnResultPanel.jsx` e `VotingPanel.jsx` com eliminados/sem mortes, seleção de vivo ou empate e confirmação; mortos não aparecem e não há interface de votos individuais.
+- [X] T070 [US4] Estender `src/pages/live-match/useLiveMatchViewModel.js` e `src/app/providers/MatchSessionProvider.jsx` com `startVoting`, `registerVote`, resultados do amanhecer e mensagens em português.
+- [X] T071 [US4] Integrar `DawnResultPanel` e `VotingPanel` em `src/pages/live-match/LiveMatchPage.jsx`, garantindo que a transição para `FINISHED` assuma a tela imediatamente e que dados do turno não sejam enviados individualmente à API.
 
 **Checkpoint**: ciclo completo de turno com amanhecer, votação, empate e novo turno.
 

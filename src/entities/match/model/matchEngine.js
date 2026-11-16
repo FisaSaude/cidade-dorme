@@ -6,7 +6,7 @@ import {
 } from '@/entities/match-participant/model/matchParticipant'
 import { GameRuleError } from '@/shared/lib/errors'
 import { validateMatchConfiguration } from './matchConfiguration'
-import { getNextAnnouncementPhase, MatchPhase } from './matchPhases'
+import { EliminationPhase, getNextAnnouncementPhase, MatchPhase } from './matchPhases'
 import { MatchClosureReason, MatchStatus } from './matchStatus'
 import { MatchWinner, evaluateVictory } from './victory'
 import {
@@ -244,6 +244,126 @@ export function resolveDetectivesPhase(session) {
   return {
     ...session,
     phase: MatchPhase.DAWN_ANNOUNCEMENT,
+  }
+}
+
+export function startVoting(session) {
+  assertPhase(session, MatchPhase.DAWN_RESULT)
+
+  return {
+    ...session,
+    phase: MatchPhase.VOTING,
+  }
+}
+
+function normalizeVoteResult(session, result) {
+  if (
+    !result ||
+    (result.type !== 'ELIMINATION' && result.type !== 'TIE')
+  ) {
+    throw new GameRuleError(
+      'INVALID_VOTE_RESULT',
+      'Vote result must be an elimination or a tie.',
+    )
+  }
+
+  if (result.type === 'TIE') {
+    return { type: 'TIE' }
+  }
+
+  if (typeof result.participantId !== 'string' || !result.participantId.trim()) {
+    throw new GameRuleError(
+      'INVALID_VOTE_RESULT',
+      'Elimination vote result requires a participantId.',
+    )
+  }
+
+  const target = resolveParticipant(session, result.participantId)
+
+  if (!target || !isMatchParticipantAlive(target)) {
+    throw new GameRuleError('TARGET_NOT_ALIVE')
+  }
+
+  return { type: 'ELIMINATION', target }
+}
+
+/**
+ * Registra o resultado da votação presencial do turno.
+ * @param {object} session
+ * @param {{ type: 'ELIMINATION', participantId: string } | { type: 'TIE' }} result
+ * @param {string} endedAt
+ * @returns {object}
+ */
+export function registerVote(session, result, endedAt) {
+  assertPhase(session, MatchPhase.VOTING)
+
+  if (session.voteResult != null) {
+    throw new GameRuleError(
+      'VOTE_ALREADY_REGISTERED',
+      'A vote result was already registered for this turn.',
+    )
+  }
+
+  const normalized = normalizeVoteResult(session, result)
+
+  const participants =
+    normalized.type === 'ELIMINATION'
+      ? session.match.participants.map((participant) =>
+          participant.id === normalized.target.id
+            ? eliminateMatchParticipant(participant, {
+                turn: session.currentTurn,
+                phase: EliminationPhase.VOTE,
+              })
+            : participant,
+        )
+      : session.match.participants
+
+  const voteResult =
+    normalized.type === 'ELIMINATION'
+      ? {
+          type: 'ELIMINATION',
+          participantId: normalized.target.participantId,
+        }
+      : { type: 'TIE' }
+
+  const withVote = {
+    ...session,
+    voteResult,
+    match: {
+      ...session.match,
+      participants,
+      turnCount: session.match.turnCount + 1,
+    },
+  }
+
+  const winner = evaluateVictory(withVote)
+
+  if (winner === MatchWinner.INNOCENTS || winner === MatchWinner.ASSASSINS) {
+    if (typeof endedAt !== 'string' || !endedAt.trim()) {
+      throw new TypeError('endedAt is required when finishing with victory.')
+    }
+
+    return {
+      ...withVote,
+      phase: MatchPhase.FINISHED,
+      match: {
+        ...withVote.match,
+        status: MatchStatus.FINISHED,
+        closureReason: MatchClosureReason.VICTORY,
+        winner,
+        endedAt,
+      },
+    }
+  }
+
+  return {
+    ...withVote,
+    phase: MatchPhase.TURN_START,
+    currentTurn: session.currentTurn + 1,
+    assassinTargets: {},
+    investigations: {},
+    nightResult: null,
+    voteResult: null,
   }
 }
 
