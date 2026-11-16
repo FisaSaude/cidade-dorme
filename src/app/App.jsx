@@ -51,6 +51,7 @@ function AppShell() {
     resolveDetectivesPhase,
     startVoting,
     registerVote,
+    finishManually,
     persistence,
     retryPersistMatch,
   } = useMatchSession()
@@ -118,6 +119,7 @@ function AppShell() {
                 resolveDetectivesPhase,
                 startVoting,
                 registerVote,
+                finishManually,
                 persistence,
                 retryPersistMatch,
               }}

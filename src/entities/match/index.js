@@ -7,6 +7,7 @@ export {
   resolveDetectivesPhase,
   startVoting,
   registerVote,
+  finishManually,
 } from './model/matchEngine'
 
 export {

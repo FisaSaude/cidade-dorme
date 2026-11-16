@@ -213,15 +213,15 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Tests for User Story 6
 
-- [ ] T080 [P] [US6] Escrever `tests/unit/matchEngine.manual.test.js` cobrindo encerramento em sobreposição, ações e votação, `closureReason = MANUAL`, `winner = null`, `status = FINISHED`, status dos participantes preservado, `turnCount` inalterado e segundo encerramento com `MATCH_ALREADY_FINISHED`.
-- [ ] T081 [US6] Escrever `tests/integration/manualClosure.test.jsx` cobrindo diálogo de confirmação, cancelamento sem alteração, confirmação sem vencedor, botão acessível durante sobreposição sem dispensá-la e gravação única.
+- [X] T080 [P] [US6] Escrever `tests/unit/matchEngine.manual.test.js` cobrindo encerramento em sobreposição, ações e votação, `closureReason = MANUAL`, `winner = null`, `status = FINISHED`, status dos participantes preservado, `turnCount` inalterado e segundo encerramento com `MATCH_ALREADY_FINISHED`.
+- [X] T081 [US6] Escrever `tests/integration/manualClosure.test.jsx` cobrindo diálogo de confirmação, cancelamento sem alteração, confirmação sem vencedor, botão acessível durante sobreposição sem dispensá-la e gravação única.
 
 ### Implementation for User Story 6
 
-- [ ] T082 [US6] Implementar `finishManually(session, endedAt)` em `src/entities/match/model/matchEngine.js` permitindo qualquer fase não final, sem eliminar ninguém, sem alterar `turnCount` e rejeitando partida já finalizada.
-- [ ] T083 [US6] Implementar `src/features/match-closure/model/closure.js` e `src/features/match-closure/ui/FinishMatchButton.jsx` com abertura do diálogo, confirmação, cancelamento e suporte a `stopPropagation` em sobreposições.
-- [ ] T084 [US6] Estender `src/app/providers/MatchSessionProvider.jsx` e `src/pages/live-match/useLiveMatchViewModel.js` com `finishManually`, estado do diálogo de confirmação e mensagens em português.
-- [ ] T085 [US6] Integrar o encerramento manual em `src/pages/live-match/LiveMatchPage.jsx` em todas as fases e no `footerAction` de `SpecialOverlay`, garantindo exclusão do turno em andamento e reutilização da persistência de US5.
+- [X] T082 [US6] Implementar `finishManually(session, endedAt)` em `src/entities/match/model/matchEngine.js` permitindo qualquer fase não final, sem eliminar ninguém, sem alterar `turnCount` e rejeitando partida já finalizada.
+- [X] T083 [US6] Implementar `src/features/match-closure/model/closure.js` e `src/features/match-closure/ui/FinishMatchButton.jsx` com abertura do diálogo, confirmação, cancelamento e suporte a `stopPropagation` em sobreposições.
+- [X] T084 [US6] Estender `src/app/providers/MatchSessionProvider.jsx` e `src/pages/live-match/useLiveMatchViewModel.js` com `finishManually`, estado do diálogo de confirmação e mensagens em português.
+- [X] T085 [US6] Integrar o encerramento manual em `src/pages/live-match/LiveMatchPage.jsx` em todas as fases e no `footerAction` de `SpecialOverlay`, garantindo exclusão do turno em andamento e reutilização da persistência de US5.
 
 **Checkpoint**: encerramento manual seguro, persistido e coerente com o ranking.
 

@@ -367,4 +367,37 @@ export function registerVote(session, result, endedAt) {
   }
 }
 
+/**
+ * Encerra a partida manualmente em qualquer fase não final.
+ * Mantém status dos participantes e não conta o turno em andamento.
+ * @param {object} session
+ * @param {string} endedAt
+ * @returns {object}
+ */
+export function finishManually(session, endedAt) {
+  if (
+    session.phase === MatchPhase.FINISHED ||
+    session.match.status === MatchStatus.FINISHED
+  ) {
+    throw new GameRuleError('MATCH_ALREADY_FINISHED')
+  }
+
+  if (typeof endedAt !== 'string' || !endedAt.trim()) {
+    throw new TypeError('endedAt is required when finishing manually.')
+  }
+
+  return {
+    ...session,
+    phase: MatchPhase.FINISHED,
+    match: {
+      ...session.match,
+      status: MatchStatus.FINISHED,
+      closureReason: MatchClosureReason.MANUAL,
+      winner: null,
+      endedAt,
+      turnCount: session.match.turnCount,
+    },
+  }
+}
+
 export default createMatchSession

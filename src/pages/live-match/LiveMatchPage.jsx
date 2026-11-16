@@ -3,6 +3,7 @@ import { AssassinsPhasePanel } from '@/features/assassins-phase/ui/AssassinsPhas
 import { DawnResultPanel } from '@/features/dawn-and-voting/ui/DawnResultPanel'
 import { VotingPanel } from '@/features/dawn-and-voting/ui/VotingPanel'
 import { DetectivesPhasePanel } from '@/features/detectives-phase/ui/DetectivesPhasePanel'
+import { FinishMatchButton } from '@/features/match-closure/ui/FinishMatchButton'
 import { SpecialAnnouncement } from '@/features/special-announcement/ui/SpecialAnnouncement'
 import { Alert } from '@/shared/ui/Alert'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -25,6 +26,7 @@ import styles from './LiveMatchPage.module.css'
  *     resolveDetectivesPhase?: () => void,
  *     startVoting?: () => void,
  *     registerVote?: (result: object) => void,
+ *     finishManually?: () => void,
  *     retryPersistMatch?: () => void,
  *     persistence?: { state?: string, error?: unknown, savedMatchId?: string | null },
  *   },
@@ -58,6 +60,15 @@ export function LiveMatchPage({
         Partida em andamento
       </h2>
       <MatchStatusBar session={session} nextStepLabel={viewState.nextStepLabel} />
+
+      {session.phase !== MatchPhase.FINISHED ? (
+        <FinishMatchButton
+          confirmOpen={viewState.closure.isConfirmOpen}
+          onOpen={vmActions.openFinishConfirm}
+          onCancel={vmActions.closeFinishConfirm}
+          onConfirm={vmActions.finishManually}
+        />
+      ) : null}
 
       {viewState.error ? <Alert tone="error" title={viewState.error} /> : null}
 
@@ -105,6 +116,16 @@ export function LiveMatchPage({
         <SpecialAnnouncement
           phase={session.phase}
           onDismiss={vmActions.dismissAnnouncement}
+          footerAction={
+            <FinishMatchButton
+              compact
+              renderDialog={false}
+              confirmOpen={viewState.closure.isConfirmOpen}
+              onOpen={vmActions.openFinishConfirm}
+              onCancel={vmActions.closeFinishConfirm}
+              onConfirm={vmActions.finishManually}
+            />
+          }
         />
       ) : null}
     </section>

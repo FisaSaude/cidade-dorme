@@ -15,6 +15,7 @@ import {
   resolveAssassinsPhase,
   resolveDetectivesPhase,
   setAssassinTarget,
+  finishManually,
   setInvestigation,
   startVoting,
 } from '@/entities/match'
@@ -160,6 +161,11 @@ export function MatchSessionProvider({ children }) {
     [now, runSessionCommand],
   )
 
+  const finishCurrentMatchManually = useCallback(
+    () => runSessionCommand((current) => finishManually(current, now())),
+    [now, runSessionCommand],
+  )
+
   const value = useMemo(
     () => ({
       session,
@@ -175,9 +181,11 @@ export function MatchSessionProvider({ children }) {
       resolveDetectivesPhase: resolveCurrentDetectivesPhase,
       startVoting: startCurrentVoting,
       registerVote: registerCurrentVote,
+      finishManually: finishCurrentMatchManually,
     }),
     [
       dismissCurrentAnnouncement,
+      finishCurrentMatchManually,
       hasActiveSession,
       persistence,
       persistFinishedMatch,

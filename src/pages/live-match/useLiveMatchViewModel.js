@@ -13,6 +13,11 @@ import { getAssassinRows } from '@/features/assassins-phase/model/assassinRows'
 import { getDawnResult } from '@/features/dawn-and-voting/model/dawnResult'
 import { getVotingOptions } from '@/features/dawn-and-voting/model/votingOptions'
 import { getDetectiveRows } from '@/features/detectives-phase/model/detectiveRows'
+import {
+  closeClosureDialog,
+  createClosureState,
+  openClosureDialog,
+} from '@/features/match-closure/model/closure'
 import { getAnnouncementText } from '@/features/special-announcement/model/announcements'
 
 const NEXT_STEP_BY_PHASE = Object.freeze({
@@ -50,6 +55,7 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
   const loadParticipants = useCallback(() => participantRepository.list(), [participantRepository])
   const { data } = useAsyncData(loadParticipants)
   const [error, setError] = useState('')
+  const [closureState, setClosureState] = useState(() => createClosureState())
 
   const participantNames = useMemo(() => {
     const entries = (data ?? []).map((participant) => [participant.id, participant.name])
@@ -174,6 +180,21 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
         setError(toMessage(actionError))
       }
     },
+    openFinishConfirm: () => {
+      setClosureState((current) => openClosureDialog(current))
+    },
+    closeFinishConfirm: () => {
+      setClosureState((current) => closeClosureDialog(current))
+    },
+    finishManually: () => {
+      try {
+        setError('')
+        actions.finishManually()
+        setClosureState((current) => closeClosureDialog(current))
+      } catch (actionError) {
+        setError(toMessage(actionError))
+      }
+    },
   }
 
   return {
@@ -189,6 +210,7 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
       error,
       assassinTargets: session?.assassinTargets ?? {},
       investigations: session?.investigations ?? {},
+      closure: closureState,
     },
     actions: viewActions,
   }
