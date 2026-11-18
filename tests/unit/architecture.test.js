@@ -85,4 +85,38 @@ describe('limites arquiteturais (FSD)', () => {
 
     expect(violations).toEqual([])
   })
+
+  it('mantém os slices de exclusão isolados de outras features', () => {
+    const slices = ['participant-deletion', 'match-deletion']
+    const violations = []
+
+    for (const slice of slices) {
+      for (const filePath of listSourceFiles(join(SRC_DIR, 'features', slice))) {
+        for (const specifier of readImports(filePath)) {
+          if (specifier.startsWith('@/features/')) {
+            violations.push(`${relative(SRC_DIR, filePath)} -> ${specifier}`)
+          }
+        }
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+
+  it('usa apenas as APIs públicas dos slices de entities fora de entities', () => {
+    const violations = []
+    const layers = ['features', 'pages', 'widgets', 'app']
+
+    for (const layer of layers) {
+      for (const filePath of listSourceFiles(join(SRC_DIR, layer))) {
+        for (const specifier of readImports(filePath)) {
+          if (/^@\/entities\/[^/]+\/.+/.test(specifier)) {
+            violations.push(`${relative(SRC_DIR, filePath)} -> ${specifier}`)
+          }
+        }
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
 })

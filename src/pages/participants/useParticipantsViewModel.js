@@ -7,9 +7,17 @@ import {
   updateParticipantFormName,
 } from '@/features/participant-form/model/participantForm'
 import {
+  cancelParticipantDeletion,
+  createParticipantDeletionState,
+  getParticipantDeletionDecision,
+  requestParticipantDeletion,
+} from '@/features/participant-deletion/model/participantDeletion'
+import {
   DEFAULT_ERROR_MESSAGE,
   getGameRuleErrorMessage,
+  uiMessages,
 } from '@/shared/config/labels'
+import { nowIso } from '@/shared/lib/date'
 import { useAsyncData } from '@/shared/lib/useAsyncData'
 import { ApiError, GameRuleError } from '@/shared/lib/errors'
 
@@ -42,24 +50,60 @@ function toUserMessage(error) {
 }
 
 /**
- * ViewModel da página de participantes: carrega, cria e edita participantes.
- * @param {{ list: Function, create: Function, update: Function }} repository
+ * ViewModel da página de participantes: carrega ativos, cria, edita e exclui.
+ * @param {{
+ *   list?: Function,
+ *   listActive?: Function,
+ *   create: Function,
+ *   update: Function,
+ *   archive?: Function,
+ * }} repository
+ * @param {{ activeParticipantIds?: string[], now?: () => string }} [options]
  */
-export function useParticipantsViewModel(repository) {
+export function useParticipantsViewModel(repository, options = {}) {
   if (!repository) {
     throw new Error('participantRepository is required.')
   }
 
-  const load = useCallback(() => repository.list(), [repository])
+  const activeParticipantIds = options.activeParticipantIds ?? []
+  const now = options.now ?? nowIso
+
+  const load = useCallback(
+    () =>
+      typeof repository.listActive === 'function'
+        ? repository.listActive()
+        : repository.list(),
+    [repository],
+  )
   const { data, error, loading, retry } = useAsyncData(load)
 
   const [form, setForm] = useState(() => createParticipantForm())
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState('')
+  const [deletionState, setDeletionState] = useState(() =>
+    createParticipantDeletionState(),
+  )
+  const [deletionError, setDeletionError] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
 
   const participants = useMemo(() => sortParticipants(data ?? []), [data])
   const loadError = error ? toUserMessage(error) : ''
+
+  const pendingParticipant = useMemo(
+    () =>
+      participants.find(
+        (participant) => participant.id === deletionState.pendingParticipantId,
+      ) ?? null,
+    [deletionState.pendingParticipantId, participants],
+  )
+
+  const deletionDecision = pendingParticipant
+    ? getParticipantDeletionDecision({
+        participantId: pendingParticipant.id,
+        activeParticipantIds,
+      })
+    : { allowed: true, code: null, message: '' }
 
   const changeName = useCallback((name) => {
     setForm((current) => updateParticipantFormName(current, name))
@@ -112,6 +156,55 @@ export function useParticipantsViewModel(repository) {
     }
   }, [form, participants, repository, retry, submitting])
 
+  const requestDelete = useCallback((participant) => {
+    setDeletionError('')
+    setNotice('')
+    setDeletionState((current) =>
+      requestParticipantDeletion(current, participant.id),
+    )
+  }, [])
+
+  const cancelDelete = useCallback(() => {
+    setDeletionError('')
+    setDeletionState((current) => cancelParticipantDeletion(current))
+  }, [])
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingParticipant || deletingId) {
+      return
+    }
+
+    const decision = getParticipantDeletionDecision({
+      participantId: pendingParticipant.id,
+      activeParticipantIds,
+    })
+
+    if (!decision.allowed) {
+      setDeletionError(decision.message)
+      return
+    }
+
+    if (typeof repository.archive !== 'function') {
+      setDeletionError(uiMessages.participantArchiveFailure)
+      return
+    }
+
+    setDeletingId(pendingParticipant.id)
+    setDeletionError('')
+    setNotice('')
+
+    try {
+      await repository.archive(pendingParticipant.id, now())
+      setDeletionState((current) => cancelParticipantDeletion(current))
+      setNotice(uiMessages.participantArchiveSuccess)
+      retry()
+    } catch (deleteError) {
+      setDeletionError(toUserMessage(deleteError))
+    } finally {
+      setDeletingId(null)
+    }
+  }, [activeParticipantIds, deletingId, now, pendingParticipant, repository, retry])
+
   return {
     viewState: {
       participants,
@@ -122,6 +215,13 @@ export function useParticipantsViewModel(repository) {
       submitting,
       notice,
       isEditing: isEditingParticipantForm(form),
+      deletion: {
+        open: Boolean(pendingParticipant),
+        participant: pendingParticipant,
+        blockedMessage: deletionDecision.allowed ? '' : deletionDecision.message,
+        error: deletionError,
+        deletingId,
+      },
     },
     actions: {
       changeName,
@@ -129,6 +229,9 @@ export function useParticipantsViewModel(repository) {
       cancelEdit,
       submit,
       retry,
+      requestDelete,
+      cancelDelete,
+      confirmDelete,
     },
   }
 }

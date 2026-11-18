@@ -5,14 +5,22 @@ import { LoadingState } from '@/shared/ui/LoadingState'
 import styles from './ParticipantsTable.module.css'
 
 /**
- * Lista de participantes cadastrados com ação de edição.
+ * Lista de participantes cadastrados com ações de edição e exclusão.
  * @param {{
  *   participants: Array<{ id: string, name: string }>,
  *   loading?: boolean,
  *   onEdit?: (participant: { id: string, name: string }) => void,
+ *   onDelete?: (participant: { id: string, name: string }) => void,
+ *   deletingId?: string | null,
  * }} props
  */
-export function ParticipantsTable({ participants, loading = false, onEdit }) {
+export function ParticipantsTable({
+  participants,
+  loading = false,
+  onEdit,
+  onDelete,
+  deletingId = null,
+}) {
   if (loading) {
     return <LoadingState label="Carregando participantes…" />
   }
@@ -40,13 +48,23 @@ export function ParticipantsTable({ participants, loading = false, onEdit }) {
         {participants.map((participant) => (
           <li key={participant.id} className={styles.row}>
             <ParticipantName name={participant.name} className={styles.name} />
-            <Button
-              variant="secondary"
-              aria-label={`Editar ${participant.name}`}
-              onClick={() => onEdit?.(participant)}
-            >
-              Editar
-            </Button>
+            <div className={styles.rowActions}>
+              <Button
+                variant="secondary"
+                aria-label={`Editar ${participant.name}`}
+                onClick={() => onEdit?.(participant)}
+              >
+                Editar
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={deletingId === participant.id}
+                aria-label={`Excluir ${participant.name}`}
+                onClick={() => onDelete?.(participant)}
+              >
+                {deletingId === participant.id ? 'Excluindo…' : 'Excluir'}
+              </Button>
+            </div>
           </li>
         ))}
       </ul>

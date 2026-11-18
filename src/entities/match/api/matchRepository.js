@@ -90,7 +90,7 @@ function assertFinishedMatchInput(value) {
 
 /**
  * Repositório de partidas sobre o cliente HTTP injetável.
- * @param {{ client?: { get: Function, put: Function } }} [options]
+ * @param {{ client?: { get: Function, put: Function, delete: Function } }} [options]
  */
 export function createMatchRepository(options = {}) {
   const client = options.client ?? httpClient
@@ -126,7 +126,19 @@ export function createMatchRepository(options = {}) {
     return assertMatchDocument(saved)
   }
 
-  return { listFinished, getById, saveFinishedMatch }
+  /**
+   * Exclui definitivamente uma partida. O chamador trata 404 como já removida.
+   * @param {string} id
+   */
+  async function deleteMatch(id) {
+    if (!isNonEmptyString(id)) {
+      throw new TypeError('Match id is required.')
+    }
+
+    await client.delete(`/matches/${id}`)
+  }
+
+  return { listFinished, getById, saveFinishedMatch, deleteMatch }
 }
 
 export const matchRepository = createMatchRepository()

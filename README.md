@@ -1,75 +1,63 @@
+
 # Cidade Dorme — Apoio ao Narrador
 
-Aplicação web local para conduzir partidas presenciais de Cidade Dorme. O narrador cadastra participantes, configura papéis manualmente, conduz as fases da noite e da votação, encerra a partida por vitória ou manualmente e consulta histórico e ranking.
+## 1. Projeto e integrantes
 
-## Pré-requisitos
+O Cidade Dorme é uma aplicação web desenvolvida para facilitar a organização de partidas presenciais do jogo. A ideia é ajudar o narrador a gerenciar os participantes, configurar os papéis, conduzir as fases da noite e da votação, além de consultar o histórico e o ranking das partidas. O projeto busca reduzir o trabalho manual e tornar a condução das partidas mais simples e organizada.
 
-- Node.js 24 ou compatível com Vite 8.
-- npm.
-- Portas livres: `5173` (Vite) e `3001` (JSON Server).
+**Integrantes:** Wendel, Edson, Dandara, Isabela e Vinicius.
 
-## Instalação
+## 2. Framework utilizado
+
+O grupo utilizou o **GitHub Spec Kit**, que trabalha com a abordagem Spec-Driven Development. Escolhemos esse framework para organizar melhor o desenvolvimento com inteligência artificial, definindo primeiro o que deveria ser feito antes de partir para a implementação. Isso ajudou a manter as funcionalidades alinhadas com a proposta do projeto e diminuiu as chances de o agente tomar decisões diferentes do que o grupo havia planejado.
+
+## 3. Como rodar
+
+**Pré-requisitos:** Node.js 24 ou compatível com Vite 8 e npm.
+
+Na raiz do projeto, execute:
 
 ```bash
 npm install
-```
-
-## Execução
-
-Inicie o JSON Server e o Vite juntos:
-
-```bash
 npm run dev:all
 ```
 
-Ou use dois terminais:
+Esse comando inicia o frontend e a API ao mesmo tempo. Também é possível iniciar os serviços separadamente, utilizando dois terminais:
 
 ```bash
 npm run dev:api
 npm run dev
 ```
 
-Abra `http://localhost:5173`. A API simulada responde em `http://localhost:3001`.
+Depois, acesse `http://localhost:5173`. A API simulada fica disponível em `http://localhost:3001`.
 
-## Scripts
+## 4. Onde estão os artefatos
 
-| Script | Função |
-|---|---|
-| `npm run dev` | Inicia o Vite em modo de desenvolvimento. |
-| `npm run dev:api` | Inicia o JSON Server observando `db.json` na porta 3001. |
-| `npm run dev:all` | Inicia JSON Server e Vite em paralelo. |
-| `npm test` | Executa a suíte Vitest uma vez. |
-| `npm run test:watch` | Executa o Vitest em modo observação. |
-| `npm run lint` | Executa o Oxlint. |
-| `npm run build` | Gera o build de produção. |
-| `npm run preview` | Serve o build de produção localmente. |
+Os documentos utilizados durante o desenvolvimento seguem a organização do GitHub Spec Kit:
 
-## Persistência com `db.json`
+- **Spec:** `specs/001-cidade-dorme/spec.md`
+- **Plano:** `specs/001-cidade-dorme/plan.md`
+- **Tarefas:** `specs/001-cidade-dorme/tasks.md`
 
-O arquivo `db.json` na raiz é a fonte observada pelo JSON Server e começa vazio:
+**Divisão das tarefas:**
+- Integrante 1: [Responsabilidade].
+- Integrante 2: [Responsabilidade].
+- Integrante 3: [Responsabilidade].
 
-```json
-{ "participants": [], "matches": [] }
-```
+## 5. Reflexão
 
-- `participants`: participantes cadastrados (nome e ID).
-- `matches`: partidas finalizadas, com os participantes da partida embutidos (`MatchParticipant`), resultado e turnos.
-- Ações noturnas, investigações e votos individuais existem apenas em memória e não são enviados à API.
-- Ao encerrar a partida, um único `PUT /matches/:id` idempotente grava o documento final. O script `dev:api` carrega `json-server.middleware.cjs`, que converte o primeiro `PUT` de uma partida nova em `POST` (o JSON Server 0.17 não faz upsert nativo); tentativas seguintes substituem o mesmo documento.
-- Histórico e ranking são derivados das partidas finalizadas; não há coleção de ranking.
+**Que decisão o agente teria tomado sozinho e a spec evitou?**
 
-## Limitações conhecidas
+Sem uma especificação clara, o agente poderia implementar funcionalidades que não faziam parte da proposta, como um sistema de votação dentro da aplicação. A spec ajudou a deixar claro que a votação acontece presencialmente e que o narrador é responsável por registrar o resultado.
 
-- A partida em andamento vive apenas em memória. Recarregar ou fechar o navegador descarta a sessão; nenhum registro órfão é criado.
-- Não há autenticação, exclusão de participantes nem sorteio automático de papéis.
-- A aplicação foi projetada para um único narrador local.
+**Que inconsistência a validação encontrou? Estava na spec ou no código?**
 
-## Testes e qualidade
+Um exemplo seria o comportamento das eliminações durante a votação. Caso o sistema eliminasse um jogador automaticamente em uma situação de empate, estaria contrariando a regra definida. Nesse caso, o problema estaria no código, e não na especificação.
 
-```bash
-npm test
-npm run lint
-npm run build
-```
+**Como o framework ajudou (ou atrapalhou) a coordenação do grupo?**
 
-Os testes unitários e de integração usam repositórios e clientes HTTP falsos; não exigem o JSON Server em execução.
+O Spec Kit ajudou a organizar as funcionalidades e dividir o desenvolvimento em tarefas menores, facilitando o acompanhamento do que precisava ser feito. Por outro lado, foi necessário dedicar um tempo maior à documentação e à atualização dos arquivos sempre que alguma decisão do projeto mudava.
+
+**O que fariam diferente com outro framework?**
+
+Com outro framework, tentaríamos simplificar um pouco a documentação e validar as funcionalidades com mais frequência durante a implementação. Mesmo assim, manteríamos a ideia de definir os requisitos e organizar as tarefas antes de começar a desenvolver.

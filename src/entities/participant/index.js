@@ -1,6 +1,9 @@
 export {
+  archiveParticipant,
   createParticipant,
   isDuplicateParticipantName,
+  isParticipantActive,
+  normalizeParticipantDeletedAt,
   normalizeParticipantName,
   renameParticipant,
   validateParticipantName,

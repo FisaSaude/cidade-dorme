@@ -1,13 +1,15 @@
 # Plano de Implementação: Cidade Dorme — Aplicação de Apoio ao Narrador
 
-**Branch**: `001-cidade-dorme-game` | **Date**: 2026-11-14 | **Spec**: [spec.md](./spec.md)
-**Input**: Especificação funcional em `specs/001-cidade-dorme-game/spec.md`
+**Branch**: `001-cidade-dorme-game` | **Date**: 2026-11-14 | **Updated**: 2026-11-17 | **Spec**: [spec.md](./spec.md)
+**Input**: Especificação funcional em `specs/001-cidade-dorme-game/spec.md`, revisada em 2026-11-17.
 
 ## Resumo
 
 O plano implementa uma SPA React (JavaScript) para o narrador conduzir partidas presenciais do Cidade Dorme. A solução combina Feature-Sliced Design (FSD) para organizar o código por domínio com MVVM para separar View, ViewModel e Model. O núcleo do jogo será um motor puro e testável, independente de React, responsável pelo ciclo de fases, eliminações, vitória e encerramento.
 
 A persistência usará o JSON Server para participantes e partidas finalizadas. As ações noturnas e investigações permanecem em memória durante a partida. A partida será persistida em uma única operação idempotente ao ser encerrada, com os `MatchParticipant` embutidos no documento da partida. Essa escolha evita escritas parciais e mantém o histórico e o ranking deriváveis dos dados persistidos.
+
+A revisão de 2026-11-17 acrescenta quatro comportamentos ao plano: seleção padrão de todos os participantes com ações em massa na configuração; encerramento manual em um ponto único e persistente da tela da partida; exclusão de participantes (arquivamento com `deletedAt`) e de partidas finalizadas, preservando histórico e ranking; e atualização em massa dos status na vitória dos assassinos antes da persistência. Participantes excluídos saem do cadastro ativo e das novas partidas, mas mantêm nome, identidade e contribuição histórica.
 
 O template Vite existente será preservado (configuração, `public/` e assets não-demo). Apenas o conteúdo de demonstração será substituído pela aplicação, e as dependências necessárias para persistência e testes serão adicionadas com justificativa.
 
@@ -27,11 +29,11 @@ O template Vite existente será preservado (configuração, `public/` e assets n
 
 **Metas de desempenho**: Resposta de interface perceptivelmente imediata para partidas de dezenas de participantes; sem meta de throughput. Animações devem ser leves e não bloquear a operação.
 
-**Restrições**: Sem TypeScript; sem autenticação; sem sorteio automático de papéis; sem persistência individual de ações noturnas; uma única sessão de partida por vez; sem exclusão de participantes; dados de participantes e partidas finalizadas devem sobreviver ao recarregamento do navegador.
+**Restrições**: Sem TypeScript; sem autenticação; sem sorteio automático de papéis; sem persistência individual de ações noturnas; uma única sessão de partida por vez; participantes podem ser excluídos do cadastro ativo por arquivamento (`deletedAt`), sem exclusão física; partidas finalizadas podem ser excluídas definitivamente do histórico; sem exclusão em massa, restauração/desfazer ou edição de partidas finalizadas; dados de participantes e partidas finalizadas devem sobreviver ao recarregamento do navegador.
 
 **Escala/Escopo**: Um narrador, dezenas de participantes cadastrados, partidas com 5 ou mais participantes, histórico pequeno a moderado. Aproximadamente 5 telas principais e 1 fluxo central de partida.
 
-**Incertezas**: Nenhuma lacuna técnica permanece após a pesquisa registrada em [research.md](./research.md). Todas as decisões D1–D9 foram aprovadas e estão registradas na seção 10.2.
+**Incertezas**: Nenhuma lacuna técnica permanece após a pesquisa registrada em [research.md](./research.md). As decisões D1–D15, além de Q1–Q3 e das premissas A1–A5, estão aprovadas e registradas na seção 10.2.
 
 ## Verificação da Constituição
 
@@ -41,15 +43,15 @@ O template Vite existente será preservado (configuração, `public/` e assets n
 |---|---|---|
 | I. Arquitetura e Organização | PASSA | FSD em camadas com regras de dependência explícitas; MVVM com ViewModels apenas onde há estado ou orquestração; regras de negócio no motor puro e nas entidades, fora de React e do acesso a dados. |
 | II. Tecnologias e Padrões | PASSA | React com JavaScript; configuração Vite preservada; JSON Server como persistência; identificadores técnicos em inglês; documentação em português. |
-| III. Qualidade de Código | PASSA | Motor puro com funções pequenas, erros de domínio tipados por código, repositórios injetáveis e dependências justificadas. Sem duplicação de dados persistidos. |
-| IV. Interface e Experiência | PASSA | Tema dark/sombrio por tokens CSS, sobreposições de tela cheia reutilizáveis, animações opcionais e suporte a `prefers-reduced-motion`. |
-| V. Testes e Confiabilidade | PASSA | Prioridade em testes puros de vitória, eliminação, ações, votação, encerramento e ranking; testes de UI apenas para fluxos críticos. |
-| Restrições | PASSA | Sem TypeScript, autenticação ou sorteio; sem persistir ações noturnas individualmente; sem funcionalidades fora do escopo. |
+| III. Qualidade de Código | PASSA | Motor puro com funções pequenas, erros de domínio tipados por código, repositórios injetáveis e dependências justificadas. O arquivamento de participantes preserva a integridade referencial e evita exclusões físicas que criariam órfãos no histórico. |
+| IV. Interface e Experiência | PASSA | Tema dark/sombrio por tokens CSS, sobreposições de tela cheia reutilizáveis, animações opcionais e suporte a `prefers-reduced-motion`. O encerramento manual permanece em um ponto único, acessível durante sobreposições e com confirmação acima delas. |
+| V. Testes e Confiabilidade | PASSA | Prioridade em testes puros de vitória, atualização em massa de status, eliminação, ações, votação, encerramento, exclusões e ranking; testes de UI apenas para fluxos críticos. |
+| Restrições | PASSA | Sem TypeScript, autenticação ou sorteio; sem persistir ações noturnas individualmente; exclusão de participantes por arquivamento e de partidas finalizadas; sem exclusão em massa, restauração ou edição de partidas encerradas; sem funcionalidades fora do escopo. |
 | Evolução do Projeto | PASSA | Não há refatoração ampla. A substituição do conteúdo de demonstração do Vite é necessária e limitada. |
 
 **Resultado**: nenhuma violação. A seção `Complexity Tracking` permanece vazia.
 
-**Reavaliação pós-design**: o design mantém as regras de negócio fora da interface e do JSON Server, preserva as decisões da Constituição e não introduz dependências de roteamento, estado global ou componentes visuais de terceiros.
+**Reavaliação pós-design**: o design mantém as regras de negócio fora da interface e do JSON Server, preserva as decisões da Constituição e não introduz dependências de roteamento, estado global ou componentes visuais de terceiros. A exclusão por arquivamento e a atualização em massa de status são resolvidas no domínio e no ViewModel, sem middleware ou transações adicionais.
 
 ## Estrutura do Projeto
 
@@ -106,6 +108,7 @@ cidade-dorme/
 │   │   └── match-summary/
 │   ├── features/
 │   │   ├── participant-form/
+│   │   ├── participant-deletion/
 │   │   ├── match-configuration/
 │   │   ├── assassins-phase/
 │   │   ├── detectives-phase/
@@ -113,6 +116,7 @@ cidade-dorme/
 │   │   ├── match-closure/
 │   │   ├── special-announcement/
 │   │   ├── match-history/
+│   │   ├── match-deletion/
 │   │   └── participant-ranking/
 │   ├── entities/
 │   │   ├── participant/
@@ -162,6 +166,10 @@ cidade-dorme/
 
 Dentro de cada página e feature, os arquivos seguem o padrão `*.jsx` (View), `use*ViewModel.js` (ViewModel) e `model/` (regras de apresentação/uso). Não será criado um arquivo por função; os slices mantêm tamanho proporcional ao domínio.
 
+**Slices de exclusão**: `features/participant-deletion` concentra a validação de bloqueio (participante em partida em andamento), a confirmação e o comando de arquivamento. `features/match-deletion` concentra a confirmação e a remoção de partidas finalizadas. As Views de confirmação reutilizam `shared/ui/ConfirmDialog` e permanecem ligadas aos ViewModels de `pages/participants` e `pages/history`.
+
+**Ponto único de encerramento**: `widgets/match-status-bar` passa a abrigar o único `FinishMatchButton` da tela da partida, em uma camada persistente acima das sobreposições. `shared/ui/SpecialOverlay` deixa de receber `footerAction` e volta a ser apenas um anúncio dispensável.
+
 **Decisão de estrutura**: projeto único, com o código da aplicação em `src/` seguindo FSD e os testes fora de `src/` para deixar clara a separação entre código de produção e verificação. O alias `@` apontará para `src/`. `db.json` fica na raiz para ser o arquivo observado pelo JSON Server.
 ## 1. Arquitetura proposta e justificativas
 
@@ -192,8 +200,8 @@ Justificativa: o projeto tem um domínio pequeno, mas com regras críticas. FSD 
 
 | Papel | Onde fica | Responsabilidade |
 |---|---|---|
-| Model | `entities/*/model`, `entities/*/api`, `features/*/model` | Entidades, enums, motor puro, validações de domínio, cálculo de ranking, repositórios e casos de uso sem React. |
-| ViewModel | `use*ViewModel.js` em `pages`/`features` e `MatchSessionProvider` | Estado de apresentação, orquestração de comandos, tratamento de erros, mensagens, persistência e derivação de dados para a View. |
+| Model | `entities/*/model`, `entities/*/api`, `features/*/model` | Entidades, enums, motor puro, validações de domínio, atualização em massa de status, cálculo de ranking, repositórios e casos de uso sem React. |
+| ViewModel | `use*ViewModel.js` em `pages`/`features` e `MatchSessionProvider` | Estado de apresentação, orquestração de comandos, confirmações de exclusão, tratamento de erros, mensagens, persistência e derivação de dados para a View. |
 | View | Arquivos `.jsx` em `pages`, `widgets`, `features/*/ui`, `entities/*/ui` e `shared/ui` | Renderização declarativa, acessibilidade e eventos do usuário. Não chama `fetch`, não calcula vitória e não altera status. |
 
 Fluxo unidirecional:
@@ -215,19 +223,19 @@ Não haverá ViewModel para componentes puramente apresentacionais: `Button`, `T
 
 ViewModels existirão apenas onde há estado relevante ou orquestração:
 
-- `useParticipantsViewModel`: carregamento, formulário, criação e edição.
-- `useMatchSetupViewModel`: seleção de participantes, atribuição de papéis e validação.
-- `MatchSessionProvider`: sessão global da partida, fases, ações e persistência final.
-- `useLiveMatchViewModel`: derivação de dados da tela, ações da View e mensagens.
-- `useHistoryViewModel` e `useRankingViewModel`: carregamento e derivação de dados.
+- `useParticipantsViewModel`: carregamento, formulário, criação, edição e exclusão com confirmação.
+- `useMatchSetupViewModel`: seleção padrão e em massa, memória de papéis, atribuição de papéis e validação.
+- `MatchSessionProvider`: sessão global da partida, fases, ações, atualização em massa na vitória e persistência final; expõe os IDs da partida ativa para o bloqueio de exclusão.
+- `useLiveMatchViewModel`: derivação de dados da tela, ações da View, ponto único de encerramento e mensagens.
+- `useHistoryViewModel` e `useRankingViewModel`: carregamento, exclusão de partidas finalizadas e derivação de dados.
 - `useAppNavigation`: tela atual e bloqueio de nova partida enquanto houver sessão ativa.
 
 ## 2. Modelagem de dados (resumo)
 
 A modelagem detalhada está em [data-model.md](./data-model.md).
 
-- **Participant**: `id`, `name`. Nome obrigatório, normalizado por `trim` e único sem diferenciar maiúsculas/minúsculas.
-- **Match**: `id`, `status`, `closureReason`, `winner`, `startedAt`, `endedAt`, `turnCount` e `participants`.
+- **Participant**: `id`, `name`, `deletedAt`. Nome obrigatório, normalizado por `trim` e único sem diferenciar maiúsculas/minúsculas **no cadastro ativo**. `deletedAt` nulo indica ativo; não nulo indica arquivado.
+- **Match**: `id`, `status`, `closureReason`, `winner`, `startedAt`, `endedAt`, `turnCount` e `participants`. Partidas finalizadas podem ser excluídas definitivamente; partidas em andamento existem apenas em memória.
 - **MatchParticipant** (entidade de domínio, embutida na partida persistida): `id`, `participantId`, `role`, `status`, `eliminatedAt`.
 - **Enums**: `PlayerRole` (`INNOCENT`, `ASSASSIN`, `DETECTIVE`), `PlayerStatus` (`ALIVE`, `DEAD`), `MatchStatus` (`IN_PROGRESS`, `FINISHED`), `MatchWinner` (`INNOCENTS`, `ASSASSINS`) e `MatchClosureReason` (`VICTORY`, `MANUAL`).
 - **Fases da partida**: `TURN_START`, `ASSASSINS_ANNOUNCEMENT`, `ASSASSINS_ACTIONS`, `DETECTIVES_ANNOUNCEMENT`, `DETECTIVES_ACTIONS`, `DAWN_ANNOUNCEMENT`, `DAWN_RESULT`, `VOTING` e `FINISHED`.
@@ -239,9 +247,13 @@ Ajustes em relação à proposta inicial:
 3. `Match.closureReason` diferencia vitória de encerramento manual. `winner` é `null` no encerramento manual.
 4. `turnCount` representa turnos encerrados. O turno corrente é derivado como `turnCount + 1` durante a partida. Um encerramento manual não incrementa o turno em andamento.
 5. Não há entidade persistida de turno, ação de assassinato, investigação ou voto. Esses dados são de sessão e não entram no JSON Server.
-6. O ranking não é persistido; é calculado a partir das partidas finalizadas.
+6. O ranking não é persistido; é calculado a partir das partidas finalizadas e dos participantes ativos e arquivados com partidas remanescentes.
+7. `Participant.deletedAt` implementa a exclusão do cadastro ativo sem apagar o registro. O nome é preservado para histórico e ranking, e a unicidade é validada apenas entre ativos. O nome pode ser reutilizado em um novo cadastro, com registros distintos por identidade.
+8. Partidas finalizadas podem ser excluídas com `DELETE`; a operação é definitiva, remove a contribuição da partida do ranking e não altera o cadastro de participantes.
+9. Na vitória dos assassinos, os status finais são atualizados em massa antes da persistência: todos os não assassinos vão para `DEAD`; assassinos vivos permanecem `ALIVE`; assassinos já mortos permanecem `DEAD`; os papéis não mudam.
+10. Os não assassinos eliminados em massa recebem `eliminatedAt` com o turno e a fase da vitória; participantes já mortos mantêm seu momento original de eliminação.
 
-A modelagem atende aos requisitos. O único ajuste estrutural relevante é a forma de persistência: `MatchParticipant` é embutido no documento de `Match`, em vez de ser uma coleção independente. A justificativa está na seção 5.
+A modelagem atende aos requisitos. O único ajuste estrutural relevante é a forma de persistência: `MatchParticipant` é embutido no documento de `Match`, em vez de ser uma coleção independente. A justificativa está na seção 5. O arquivamento de participantes evita referências órfãs sem duplicar nomes.
 
 ## 3. Organização das regras de negócio
 
@@ -251,7 +263,7 @@ As regras ficam em `src/entities/match/model/`:
 
 - `matchConfiguration.js`: validação de configuração e atribuição de papéis.
 - `matchEngine.js`: máquina de estados e comandos da partida.
-- `victory.js`: avaliação das condições de vitória.
+- `victory.js`: avaliação das condições de vitória e atualização em massa de status na vitória dos assassinos.
 - `matchPhases.js`: enums e transições permitidas.
 - `matchSession.js`: forma do estado de sessão e seletores puros (`getAliveParticipants`, `getAliveAssassins`, `getAliveDetectives`, `getEligibleTargets`, etc.).
 
@@ -271,18 +283,20 @@ finishManually(session, endedAt) -> MatchSession
 
 Cada comando valida fase, ator, alvo e estado antes de produzir uma nova sessão. Comandos inválidos lançam `GameRuleError` com um código estável, por exemplo `INVALID_PHASE`, `ACTOR_NOT_ALIVE`, `TARGET_NOT_ALIVE`, `TARGET_IS_SELF`, `VOTE_ALREADY_REGISTERED` e `MATCH_ALREADY_FINISHED`.
 
+A atualização em massa não é um comando do narrador. É uma função pura interna, `applyAssassinsVictoryStatuses(session, phase)`, chamada por `resolveAssassinsPhase` e `registerVote` somente quando `evaluateVictory` retorna `ASSASSINS`, antes de `finishWithVictory` e da persistência.
+
 ### 3.2 Ciclo de fases
 
 | Fase | Ação do narrador | Próxima fase |
 |---|---|---|
 | `TURN_START` | Dispensar “Cidade Dorme”. | `ASSASSINS_ANNOUNCEMENT` |
 | `ASSASSINS_ANNOUNCEMENT` | Dispensar “Assassinos Acordem”. | `ASSASSINS_ACTIONS` |
-| `ASSASSINS_ACTIONS` | Registrar alvos opcionais e processar as ações. | Vitória: `FINISHED`; senão, `DETECTIVES_ANNOUNCEMENT` se houver detetive vivo; senão, `DAWN_ANNOUNCEMENT`. |
+| `ASSASSINS_ACTIONS` | Registrar alvos opcionais e processar as ações. | Vitória: `FINISHED` (com atualização em massa se vencerem os assassinos); senão, `DETECTIVES_ANNOUNCEMENT` se houver detetive vivo; senão, `DAWN_ANNOUNCEMENT`. |
 | `DETECTIVES_ANNOUNCEMENT` | Dispensar “Detetives Acordem”. | `DETECTIVES_ACTIONS` |
 | `DETECTIVES_ACTIONS` | Registrar investigações opcionais e concluir. | `DAWN_ANNOUNCEMENT` |
 | `DAWN_ANNOUNCEMENT` | Dispensar “Cidade Acorda”. | `DAWN_RESULT` |
 | `DAWN_RESULT` | Ler o resultado da noite e prosseguir. | `VOTING` |
-| `VOTING` | Registrar eliminado ou empate. | Vitória: `FINISHED`; senão, novo turno em `TURN_START`. |
+| `VOTING` | Registrar eliminado ou empate. | Vitória: `FINISHED` (com atualização em massa se vencerem os assassinos); senão, novo turno em `TURN_START`. |
 | `FINISHED` | Consultar resultado e encerrar. | — |
 
 Regras de sequenciamento:
@@ -292,7 +306,8 @@ Regras de sequenciamento:
 - A avaliação de vitória acontece imediatamente após essas eliminações. Se houver vitória, não há fase dos detetives, “Cidade Acorda” nem votação.
 - A avaliação de vitória acontece novamente após o registro da votação. Se houver vitória, não há novo turno.
 - A fase dos detetives não altera o status de ninguém, portanto não dispara nova checagem de vitória.
-- O encerramento manual pode ocorrer em qualquer fase, inclusive durante uma sobreposição, e interrompe o fluxo imediatamente.
+- Na vitória dos assassinos, a atualização em massa de status ocorre antes de a partida ser marcada como `FINISHED` e persistida. Ela vale tanto para vitória após a noite quanto após a votação.
+- O encerramento manual pode ocorrer em qualquer fase, inclusive durante uma sobreposição, e interrompe o fluxo imediatamente. Ele está disponível em um único ponto da tela da partida, sem duplicação nos pop-ups.
 
 ### 3.3 Processamento de eliminações e votos
 
@@ -306,6 +321,7 @@ Regras de sequenciamento:
 - Empate não elimina ninguém.
 - Um participante escolhido por vários assassinos é eliminado uma única vez.
 - Um alvo já morto não pode ser escolhido; a interface filtra e o motor rejeita.
+- **Eliminação em massa na vitória dos assassinos**: quando a partida termina com `winner = ASSASSINS`, todos os não assassinos que ainda estavam vivos são marcados como `DEAD`, com `eliminatedAt = { turn: currentTurn, phase }`, onde `phase` é `NIGHT` ou `VOTE` conforme o momento da vitória. Não assassinos já mortos mantêm seu `eliminatedAt` original; assassinos vivos permanecem `ALIVE` e assassinos mortos permanecem `DEAD`. O papel de ninguém é alterado.
 
 ### 3.4 Condições de vitória
 
@@ -317,16 +333,30 @@ A função `evaluateVictory(session)` considera apenas participantes vivos:
 
 A ordem acima resolve o caso teórico de ambas as condições. A especificação considera que as duas não podem ocorrer simultaneamente com participantes no jogo.
 
+Quando o resultado é `ASSASSINS`, a função pura `applyAssassinsVictoryStatuses(session, phase)` é aplicada antes de encerrar e persistir:
+
+1. Todos os participantes com papel diferente de `ASSASSIN` e status `ALIVE` passam a `DEAD`, com `eliminatedAt = { turn: currentTurn, phase }`.
+2. Não assassinos já `DEAD` mantêm `eliminatedAt` e não são alterados.
+3. Assassinos `ALIVE` permanecem `ALIVE`; assassinos `DEAD` permanecem `DEAD` (sem ressurreição).
+4. Nenhum `role` é alterado.
+5. A função é executada uma única vez por encerramento, após a noite ou após a votação, e o resultado persistido já contém os status finais.
+
+A avaliação de vitória continua sendo feita sobre os vivos antes da atualização em massa. Caso a partida termine por vitória dos inocentes, nenhuma atualização em massa é aplicada.
+
 ### 3.5 Integridade e prevenção de inconsistências
 
 - O motor só aceita comandos na fase correspondente.
 - A interface filtra executores e alvos, mas o motor revalida tudo.
 - O estado `FINISHED` não aceita novas ações, votos ou outro encerramento.
-- O ViewModel mantém uma flag de persistência em andamento e um `savedMatchId`; o encerramento é idempotente.
+- O ViewModel mantém uma flag de persistência em andamento e um `savedMatchId`; o encerramento é idempotente. A atualização em massa ocorre no domínio antes de `FINISHED`, portanto o documento persistido já contém os status finais.
 - A gravação final usa `PUT /matches/:id` com ID gerado no cliente. Repetir a gravação substitui o mesmo documento em vez de duplicá-lo.
 - O `turnCount` só é incrementado quando um turno é encerrado. O encerramento manual não conta o turno em andamento.
 - Ações e investigações do turno são limpas ao iniciar o próximo turno.
 - A partida em memória é a fonte de verdade durante a condução; o JSON Server só recebe o resultado final.
+- A exclusão de participante é bloqueada enquanto ele estiver na partida ativa. O ViewModel consulta os IDs expostos por `MatchSessionProvider` e apresenta mensagem explicativa; o repositório apenas arquiva.
+- A exclusão de participante nunca remove o documento fisicamente. `deletedAt` marca o arquivamento, o participante deixa de aparecer no cadastro ativo e nas novas partidas, e o nome permanece resolvível no histórico e no ranking.
+- A exclusão de partida é definitiva, aplicada somente a partidas `FINISHED`, e não altera participantes nem outras partidas. A contribuição da partida no ranking desaparece na próxima derivação.
+- Não há exclusão em massa, restauração ou desfazer. Cancelar uma confirmação não altera nenhum dado.
 
 ## 4. Gerenciamento de estado
 
@@ -351,9 +381,10 @@ O estado de sessão contém apenas IDs. Nomes, papéis exibidos e rótulos são 
 
 ### 4.2 Estado remoto e estado local de apresentação
 
-- **Remoto**: participantes e partidas finalizadas. Cada página carrega o que precisa com `useAsyncData`, sem cache global sofisticado. O volume é pequeno.
-- **Local de tela**: campos de formulário, diálogo de confirmação aberto, mensagens de erro/sucesso, estado de carregamento. Fica no ViewModel da página.
-- **Global**: apenas a sessão da partida e os serviços injetados (repositórios, relógio, gerador de IDs) em `AppProviders`.
+- **Remoto**: participantes (ativos e arquivados) e partidas finalizadas. Cada página carrega o que precisa com `useAsyncData`, sem cache global sofisticado. O volume é pequeno. O cadastro e a configuração usam apenas ativos; histórico e ranking usam todos.
+- **Local de tela**: campos de formulário, diálogo de confirmação aberto, mensagens de erro/sucesso, estado de carregamento, exclusão pendente e estado de envio. Fica no ViewModel da página.
+- **Rascunho de configuração**: `MatchSetupDraft { selectedIds, roles }`. `selectedIds` começa com todos os participantes ativos e é alterado por seleção individual ou em massa; `roles` guarda o papel atribuído por `participantId` e sobrevive ao desmarcar/remarcar (A4). Somente os selecionados compõem a configuração enviada ao motor.
+- **Global**: apenas a sessão da partida e os serviços injetados (repositórios, relógio, gerador de IDs) em `AppProviders`. `MatchSessionProvider` também expõe os IDs da partida ativa para o bloqueio de exclusão de participantes.
 - **Persistência final**: estado no ViewModel da sessão (`idle`, `saving`, `saved`, `error`).
 
 ### 4.3 Atualização, fechamento e recarregamento
@@ -375,7 +406,7 @@ Limitações:
 ```json
 {
   "participants": [
-    { "id": "uuid-do-participante", "name": "Ana" }
+    { "id": "uuid-do-participante", "name": "Ana", "deletedAt": null }
   ],
   "matches": [
     {
@@ -410,34 +441,41 @@ Limitações:
 Decisões:
 
 - `MatchParticipant` é uma entidade de domínio, mas seus registros são embutidos em `Match` na persistência. Isso torna o encerramento uma única escrita atômica por documento e elimina a possibilidade de partida finalizada com participantes parcialmente gravados.
-- Nomes de participantes não são duplicados na partida. O histórico resolve o nome atual por `participantId`.
+- Nomes de participantes não são duplicados na partida. O histórico resolve o nome atual por `participantId`; para participantes arquivados, resolve o último nome preservado.
 - Ações noturnas, investigações e votos por turno não são persistidos. Apenas o status final e o momento da eliminação são registrados.
 - Partidas só são gravadas quando encerradas. Portanto, os registros existentes em `matches` têm `status: "FINISHED"`. O enum `IN_PROGRESS` existe no domínio para a sessão, mas não é persistido na estratégia atual.
+- Partidas finalizadas podem ser removidas definitivamente com `DELETE /matches/:id`; não há partidas em andamento persistidas para excluir.
 - `turnCount` é o número de turnos encerrados. No encerramento manual, o turno em andamento não é contado.
 - O ranking e as contagens de sobreviventes são derivados; não há coleção de ranking.
+- Participantes nunca são removidos fisicamente. `deletedAt` nulo indica ativo; não nulo indica arquivado. Registros ausentes de `deletedAt` são tratados como ativos por compatibilidade.
 - O arquivo inicial pode ser `{ "participants": [], "matches": [] }`. Os dados são alterados pelo JSON Server durante o uso local.
 
 ### 5.2 Operações
 
 | Operação | Endpoint | Observação |
 |---|---|---|
-| Listar participantes | `GET /participants` | Ordenação alfabética pode ser feita no cliente. |
-| Criar participante | `POST /participants` | ID UUID gerado no cliente. |
-| Editar participante | `PATCH /participants/:id` | Validação de nome único no ViewModel. |
+| Listar participantes | `GET /participants` | Retorna ativos e arquivados; o cliente filtra ativos para cadastro e configuração. Ordenação alfabética pode ser feita no cliente. |
+| Criar participante | `POST /participants` | ID UUID gerado no cliente. Unicidade validada apenas no cadastro ativo. |
+| Editar participante | `PATCH /participants/:id` | Validação de nome único no cadastro ativo, no ViewModel. |
+| Arquivar participante | `PATCH /participants/:id` | Envia `{ deletedAt }`; o registro permanece para histórico e ranking. |
 | Listar partidas finalizadas | `GET /matches?status=FINISHED&_sort=endedAt&_order=desc` | Usada por histórico e ranking. |
 | Consultar partida | `GET /matches/:id` | Detalhe do histórico. |
-| Gravar partida finalizada | `PUT /matches/:id` | Upsert idempotente com `MatchParticipant` embutidos. |
+| Gravar partida finalizada | `PUT /matches/:id` | Upsert idempotente com `MatchParticipant` embutidos e status finais já atualizados. |
+| Excluir partida finalizada | `DELETE /matches/:id` | Remoção definitiva; ranking recalculado na próxima leitura. |
 | Verificar existência | `GET /matches/:id` | Usado apenas em recuperação/diagnóstico, se necessário. |
 
-Não há exclusão de participantes nem de partidas no escopo. Não há endpoints de turnos, ações ou investigações.
+Não há exclusão física de participantes, exclusão em massa ou restauração. A exclusão de partida é definitiva e restrita a partidas finalizadas. Não há endpoints de turnos, ações ou investigações.
 
 O cliente acessa `/api/*`; o Vite reescreve para o JSON Server em `localhost:3001`. O contrato completo está em [contracts/json-server-api.md](./contracts/json-server-api.md).
 
-### 5.3 Criação, atualização e consulta de participantes
+### 5.3 Criação, atualização, consulta e exclusão de participantes
 
-- Criar: validar nome obrigatório, `trim`, e comparar com a lista atual usando minúsculas e remoção de espaços nas extremidades. Nome repetido é bloqueado com mensagem explicativa.
-- Editar: mesma validação, excluindo o próprio participante da comparação. A edição preserva o ID, portanto o vínculo com partidas antigas permanece.
-- Consultar: carregar todos e ordenar alfabeticamente para exibição.
+- Criar: validar nome obrigatório, `trim`, e comparar com a lista **ativa** usando minúsculas e remoção de espaços nas extremidades. Nome repetido no cadastro ativo é bloqueado com mensagem explicativa.
+- Editar: mesma validação, excluindo o próprio participante da comparação e considerando apenas ativos. A edição preserva o ID, portanto o vínculo com partidas antigas permanece.
+- Consultar: carregar todos, separar ativos para exibição/cadastro e manter os arquivados apenas para histórico e ranking. Ordenar alfabeticamente para exibição.
+- Excluir: solicitar confirmação; cancelar não altera nada. Se o participante estiver na partida ativa, bloquear com mensagem explicativa (A2). Caso contrário, enviar `PATCH` com `deletedAt` ISO. Não usar `DELETE` físico.
+- Após o arquivamento: o participante sai da lista de cadastro ativo, não pode ser selecionado em novas partidas, mas seu `id`, `name` e contribuição no ranking permanecem. O nome preservado é o último cadastrado antes do arquivamento.
+- Reutilização de nome: como a unicidade é apenas no cadastro ativo, um novo participante pode usar o nome de um arquivado; histórico e ranking distinguem os registros pelo `id`.
 - A unicidade é garantida no cliente. O JSON Server não impõe restrição de unicidade; como há um único narrador, isso é suficiente. Um middleware customizado não é justificado nesta etapa.
 
 ### 5.4 Registro e consulta de partidas
@@ -446,25 +484,31 @@ O cliente acessa `/api/*`; o Vite reescreve para o JSON Server em `localhost:300
 - Ao encerrar por vitória ou manualmente, o ViewModel monta o documento final com `status: "FINISHED"`, `closureReason`, `winner`, datas, `turnCount` e a lista de `MatchParticipant` com status final.
 - A gravação é feita com `PUT /matches/:id`. Como o ID é gerado no início da partida, uma nova tentativa sobrescreve o mesmo documento.
 - Se a gravação falhar, o resultado continua visível na tela com aviso e opção “Tentar novamente”. O histórico só passa a exibir a partida após a gravação bem-sucedida.
-- O histórico consulta apenas partidas finalizadas e resolve os nomes atuais dos participantes.
-- A edição posterior de um participante altera o nome exibido no histórico, conforme a especificação.
+- O histórico consulta apenas partidas finalizadas e resolve os nomes atuais dos participantes, incluindo arquivados pelo último nome preservado.
+- A edição posterior de um participante ativo altera o nome exibido no histórico, conforme a especificação. Participantes arquivados não podem ser editados, portanto seu nome histórico permanece estável.
+- Excluir partida: disponível apenas para partidas finalizadas listadas no histórico. O ViewModel pede confirmação; cancelar não altera nada; confirmar executa `DELETE /matches/:id`, fecha o detalhe se estiver aberto, atualiza a lista e permite exibir o estado vazio. A exclusão não altera participantes nem outras partidas.
+- Se o `DELETE` retornar `404`, a partida já não existe: tratar como remoção concluída, atualizar a lista e informar o narrador.
+- O ranking é derivado das partidas remanescentes; a contribuição da partida excluída desaparece na próxima leitura do ranking.
 
 ### 5.5 Ranking
 
-O ranking é calculado no cliente a partir de todas as partidas finalizadas:
+O ranking é calculado no cliente a partir de todos os participantes e de todas as partidas finalizadas:
 
-1. Criar um mapa de contagem iniciado com zero para todos os participantes cadastrados.
-2. Para cada partida finalizada, incrementar a contagem de cada `MatchParticipant` com `status: "ALIVE"`.
-3. Ordenar por contagem decrescente e, em empate, por nome em ordem alfabética (`Intl.Collator('pt-BR', { sensitivity: 'base' })`).
-4. Partidas em andamento não existem na persistência atual e, por segurança, qualquer documento com status diferente de `FINISHED` é ignorado.
+1. Carregar todos os participantes (ativos e arquivados) e todas as partidas finalizadas.
+2. Montar os candidatos: todos os participantes ativos, com zero sobrevivências, mais os participantes arquivados que aparecem em pelo menos uma partida finalizada remanescente. Arquivados sem partidas remanescentes não são exibidos.
+3. Para cada partida finalizada, incrementar a contagem de cada `MatchParticipant` com `status: "ALIVE"` que pertença aos candidatos. Na vitória dos assassinos, os status considerados são os finais, após a atualização em massa: apenas assassinos que permaneceram vivos contam.
+4. Ordenar por contagem decrescente e, em empate, por nome em ordem alfabética (`Intl.Collator('pt-BR', { sensitivity: 'base' })`). Persistir um desempate final por `participantId` para garantir ordem determinística quando houver nomes iguais.
+5. Partidas em andamento não existem na persistência atual e, por segurança, qualquer documento com status diferente de `FINISHED` é ignorado.
 
-Nenhuma informação de ranking é duplicada no banco.
+Nenhuma informação de ranking é duplicada no banco. A exclusão de participante não remove sua contribuição histórica; a exclusão de partida remove a contribuição daquela partida.
 
 ### 5.6 Integridade da persistência
 
 O JSON Server não oferece transações entre recursos. O documento de partida embutido reduz o encerramento a uma única escrita. A idempotência do `PUT` cobre duplo clique, repetição de tentativa e efeitos do React StrictMode. O motor impede encerramento duplo; o ViewModel também guarda `savedMatchId` para não regravar sem necessidade.
 
-Riscos residuais: o JSON Server não valida esquema; os repositórios farão validação mínima das respostas e lançarão `ApiError` em caso de formato inesperado. A unicidade de nomes não é transacional entre abas; o cenário é fora do escopo de uso.
+O arquivamento de participantes evita órfãos sem cascata: o documento permanece e o histórico continua resolvendo o nome. A exclusão de partidas é uma operação isolada em `matches`, sem efeito em `participants` ou em outras partidas. O ranking não é armazenado, portanto não há cache para invalidar após exclusões ou vitória dos assassinos.
+
+Riscos residuais: o JSON Server não valida esquema; os repositórios farão validação mínima das respostas e lançarão `ApiError` em caso de formato inesperado. A unicidade de nomes não é transacional entre abas; o cenário é fora do escopo de uso. A exclusão de partida é irreversível e depende da confirmação do narrador.
 
 ## 6. Interface e experiência
 
@@ -472,21 +516,22 @@ Riscos residuais: o JSON Server não valida esquema; os repositórios farão val
 
 | Tela | Conteúdo principal | ViewModel |
 |---|---|---|
-| Participantes | Lista, criação e edição; mensagens de nome obrigatório/duplicado; estado vazio. | `useParticipantsViewModel` |
-| Configuração da partida | Seleção de participantes, papel por participante (inocente padrão, assassino, detetive), resumo de contagens, bloqueios de mínimo de 5 e ao menos um assassino. | `useMatchSetupViewModel` |
-| Partida | Barra de status (turno, fase, vivos/mortos), sobreposições, ações de assassinos, investigações, amanhecer, votação, resultado e encerramento manual. | `MatchSessionProvider` + `useLiveMatchViewModel` |
-| Histórico | Lista de partidas finalizadas; detalhe com participantes, papéis, status final, turnos e resultado. | `useHistoryViewModel` |
-| Ranking | Participantes ordenados por sobrevivências; todos os cadastrados, inclusive com zero. | `useRankingViewModel` |
+| Participantes | Lista, criação, edição e exclusão; mensagens de nome obrigatório/duplicado; confirmação de exclusão; bloqueio de exclusão em partida ativa; estado vazio. | `useParticipantsViewModel` |
+| Configuração da partida | Todos os participantes ativos já selecionados, quantidade de selecionados, selecionar/desmarcar todos, ajuste individual, papel por participante (inocente padrão, assassino, detetive), resumo de contagens, bloqueios de mínimo de 5 e ao menos um assassino. | `useMatchSetupViewModel` |
+| Partida | Barra de status (turno, fase, vivos/mortos), sobreposições, ações de assassinos, investigações, amanhecer, votação, resultado, status em massa na vitória dos assassinos e encerramento manual em ponto único. | `MatchSessionProvider` + `useLiveMatchViewModel` |
+| Histórico | Lista de partidas finalizadas; detalhe com participantes, papéis, status final, turnos e resultado; exclusão com confirmação; estado vazio. | `useHistoryViewModel` |
+| Ranking | Participantes ativos e arquivados com partidas remanescentes, ordenados por sobrevivências; ativos com zero aparecem. | `useRankingViewModel` |
 
 Fluxo principal:
 
-1. O narrador cadastra participantes.
-2. Seleciona pelo menos cinco e atribui manualmente assassinos e detetives. O restante vira inocente.
+1. O narrador cadastra participantes e pode excluir os que não deseja manter no cadastro ativo.
+2. Abre a configuração: todos os ativos já vêm selecionados; ajusta individualmente ou usa selecionar/desmarcar todos. Atribui manualmente assassinos e detetives. O restante vira inocente.
 3. Inicia a partida. O turno 1 começa com “Cidade Dorme”.
-4. Dispensa as sobreposições por clique ou teclado e registra as ações noturnas.
+4. Dispensa as sobreposições por clique ou teclado e registra as ações noturnas. O encerramento manual continua acessível no ponto único da tela.
 5. Ao final da noite, vê o resultado, registra a votação e continua.
-6. Em vitória ou encerramento manual, vê o resultado imediatamente; a partida é persistida.
-7. Histórico e ranking refletem apenas partidas finalizadas.
+6. Em vitória, vê o resultado imediatamente. Na vitória dos assassinos, os status finais já refletem a eliminação em massa; a partida é persistida com esses status. No encerramento manual, não há vencedor.
+7. Histórico e ranking refletem apenas partidas finalizadas e partidas remanescentes.
+8. No histórico, o narrador pode excluir uma partida finalizada; a contribuição dela deixa de contar no ranking.
 
 ### 6.2 Sobreposições reutilizáveis
 
@@ -496,14 +541,15 @@ Fluxo principal:
 <SpecialOverlay
   title="Cidade Dorme"
   onDismiss={dismissAnnouncement}
-  footerAction={<FinishMatchButton ... />}
 />
 ```
 
 - O mapa fase → frase fica em `features/special-announcement/model/announcements.js`, não no motor.
-- O componente cobre toda a tela com `position: fixed; inset: 0`, `role="dialog"`, `aria-modal="true"` e instrução “Clique ou pressione Enter/Espaço para continuar”.
+- O componente cobre toda a tela com `position: fixed; inset: 0`, `role="dialog"`, `aria-label` e instrução “Clique ou pressione Enter/Espaço para continuar”.
 - A dispensa ocorre apenas por ação explícita do narrador (clique, Enter ou Espaço); não há temporizador.
-- O slot `footerAction` permite o botão “Encerrar partida” durante a sobreposição, com `stopPropagation` para não dispensar a tela. O diálogo de confirmação fica acima da sobreposição.
+- O overlay **não** recebe mais um slot de ação e **não** contém o botão “Encerrar partida”. O encerramento manual existe apenas no ponto único da tela da partida, fora do pop-up (FR-096–101).
+- O ponto único é o `FinishMatchButton` renderizado em uma camada persistente de `widgets/match-status-bar`/`LiveMatchPage`, com `z-index` acima da sobreposição. O botão permanece focável e acionável durante a sobreposição; o diálogo de confirmação fica acima de ambos.
+- A acessibilidade deve ser revisada: se o controle persistente permanecer fora do overlay, o overlay não deve impedir seu foco (avaliar remover `aria-modal` ou incluir o controle na mesma camada acessível). O overlay continua anunciando o título e aceitando clique/teclado para dispensar.
 - Animações de entrada/saída usam CSS e são desativadas por `prefers-reduced-motion`. A informação nunca depende de animação.
 
 ### 6.3 Fases e controles
@@ -512,8 +558,8 @@ Fluxo principal:
 - **Investigações**: uma linha por detetive vivo; ao escolher o alvo, o papel é revelado imediatamente ao narrador. Botão para concluir.
 - **Amanhecer**: nomes dos eliminados ou “Ninguém foi assassinado nesta noite”. Botão para prosseguir.
 - **Votação**: seleção de um participante vivo ou opção “Houve empate”; confirmação. Participantes mortos não aparecem.
-- **Resultado**: lado vencedor ou indicação de encerramento manual, sobreviventes, eliminados, número de turnos e estado de persistência.
-- **Encerramento manual**: disponível em todas as fases, com confirmação; cancelar mantém o estado anterior.
+- **Resultado**: lado vencedor ou indicação de encerramento manual, sobreviventes, eliminados, número de turnos e estado de persistência. Na vitória dos assassinos, os eliminados em massa aparecem como mortos e o momento registrado é o turno/fase da vitória.
+- **Encerramento manual**: disponível em todas as fases, em um único ponto persistente da tela, inclusive durante sobreposições e pop-ups; nunca duplicado dentro deles. Sempre pede confirmação; cancelar mantém o estado anterior. Após `FINISHED`, a ação deixa de ser oferecida.
 
 ### 6.4 Identidade visual
 
@@ -527,9 +573,9 @@ Fluxo principal:
 
 ### 7.1 Camadas
 
-1. **Testes unitários de domínio (prioridade máxima)**: motor puro, sem React, sem rede e sem DOM.
-2. **Testes de casos de uso/ViewModel**: validação de configuração, orquestração de persistência e mensagens, usando repositórios falsos e relógio/gerador de IDs injetados.
-3. **Testes de integração de interface (conjunto reduzido)**: sobreposição, confirmação de encerramento, bloqueios de configuração e ausência de mortos nas listas.
+1. **Testes unitários de domínio (prioridade máxima)**: motor puro, atualização em massa de status, ranking derivado, sem React, sem rede e sem DOM.
+2. **Testes de casos de uso/ViewModel**: validação de configuração, seleção padrão/em massa, memória de papéis, exclusões com confirmação e bloqueio, orquestração de persistência e mensagens, usando repositórios falsos e relógio/gerador de IDs injetados.
+3. **Testes de integração de interface (conjunto reduzido)**: sobreposição, confirmação de encerramento, ponto único de encerramento durante sobreposição, exclusões, bloqueios de configuração e ausência de mortos nas listas.
 4. **Validação manual**: roteiro em [quickstart.md](./quickstart.md), incluindo JSON Server real.
 
 Não haverá testes E2E automatizados nesta etapa; o custo de Playwright/Cypress não se justifica para um app local de um usuário.
@@ -539,15 +585,18 @@ Não haverá testes E2E automatizados nesta etapa; o custo de Playwright/Cypress
 | Área | Casos principais |
 |---|---|
 | Vitória | Último assassino eliminado; assassinos em paridade; assassinos em superioridade; verificação após a noite; verificação após votação; interrupção do fluxo. |
-| Eliminação | Alvos duplicados eliminados uma vez; alvos distintos; morte noturna e por votação; alvo morto bloqueado. |
+| Vitória dos assassinos | Atualização em massa após a noite e após a votação; não assassinos vivos → `DEAD`; não assassinos já mortos mantêm `eliminatedAt`; assassinos vivos permanecem `ALIVE`; assassinos mortos não ressuscitam; papéis inalterados; `eliminatedAt` da vitória; persistência somente após a atualização; ranking conta apenas assassinos vivos. |
+| Eliminação | Alvos duplicados eliminados uma vez; alvos distintos; morte noturna e por votação; alvo morto bloqueado; morte em massa não duplica eliminação. |
 | Ações | Assassino/detetive morto não age; ator não escolhe a si; assassino pode escolher assassino; ação opcional; investigação não altera status. |
 | Fases | Ordem das sobreposições; dispensa; fase de detetives omitida sem detetives vivos; vitória antes da fase dos detetives e da votação. |
 | Votação | Eliminado vivo; empate sem morte; voto duplicado bloqueado; vitória após voto; novo turno. |
-| Encerramento manual | Em cada fase, inclusive sobreposição; cancelamento; sem vencedor; status preservado; turno em andamento não contado; encerramento duplo bloqueado. |
-| Ranking | Apenas finalizadas; sobreviventes contam; mortos não contam; empate alfabético; participantes com zero; partida em andamento ignorada. |
-| Configuração | Menos de 5 bloqueado; sem assassino bloqueado; sem detetive permitido; um papel por participante; todos começam vivos. |
-| Persistência | Nada é gravado antes do fim; `PUT` único; retry idempotente; falha exibe erro e permite nova tentativa. |
-| Interface | Sobreposição em tela cheia dispensada por clique ou teclado; confirmação de encerramento; mensagens de bloqueio; mortos ausentes de executores/alvos. |
+| Encerramento manual | Em cada fase, inclusive sobreposição; ponto único sem duplicação no pop-up; cancelamento; sem vencedor; status preservado; turno em andamento não contado; encerramento duplo bloqueado; ação ausente após `FINISHED`. |
+| Ranking | Apenas finalizadas; sobreviventes contam; mortos não contam; empate alfabético e desempate estável por ID; ativos com zero; arquivados com partidas remanescentes; arquivados sem partidas excluídos; partida em andamento ignorada; exclusão de partida remove contribuição. |
+| Configuração | Todos os ativos pré-selecionados; contador exibido; selecionar todos; desmarcar todos; ajuste individual; papel preservado ao desmarcar/remarcar; menos de 5 bloqueado após qualquer alteração; sem assassino bloqueado; sem detetive permitido; um papel por participante; todos começam vivos. |
+| Exclusão de participantes | Confirmação; cancelamento; sem partidas → sai do cadastro ativo; com partidas → histórico/ranking preservados; bloqueio em partida ativa; arquivado fora de novas partidas; reutilização de nome com identidade distinta; nunca `DELETE` físico. |
+| Exclusão de partidas | Confirmação; cancelamento; remove do histórico; fecha detalhe; ranking recalculado; não altera participantes nem outras partidas; `404` tratado como já removida; estado vazio na última partida. |
+| Persistência | Nada é gravado antes do fim; `PUT` único com status finais; retry idempotente; falha exibe erro e permite nova tentativa; `PATCH` de arquivamento; `DELETE` de partida. |
+| Interface | Sobreposição em tela cheia dispensada por clique ou teclado; único botão de encerramento acessível durante a sobreposição; confirmação de encerramento; mensagens de bloqueio; mortos ausentes de executores/alvos; exclusões com confirmação. |
 
 ### 7.3 Ferramentas e organização
 
@@ -576,16 +625,18 @@ As versões exatas serão fixadas no momento da instalação, verificando compat
 
 ## 9. Sequência sugerida de implementação
 
-1. **Preparação**: instalar dependências, criar scripts, configurar proxy `/api`, alias `@`, `jsconfig.json`, `db.json` e configurar Vitest.
+1. **Preparação**: instalar dependências, criar scripts, configurar proxy `/api`, alias `@`, `jsconfig.json`, `db.json` (com `deletedAt` normalizado) e configurar Vitest.
 2. **Fundação visual e compartilhada**: shell da aplicação, tokens CSS, componentes genéricos, cliente HTTP, erros e utilitários.
-3. **Domínio**: enums, entidades, configuração de partida, motor de fases, vitória, eliminação e ranking, com testes unitários.
-4. **Participantes**: repositório, ViewModel, tela de cadastro/edição e testes.
-5. **Configuração da partida**: seleção, papéis, validações e testes.
-6. **Sessão da partida**: provider, sobreposições, fases dos assassinos e detetives, amanhecer, votação e resultado.
-7. **Encerramento e persistência**: vitória automática, encerramento manual, `PUT` idempotente, retry, histórico e ranking.
-8. **Acabamento**: tema dark, acessibilidade, movimento reduzido, testes de integração, lint, build e validação do quickstart.
+3. **Domínio**: enums, entidades, configuração de partida, motor de fases, vitória, atualização em massa de status, eliminação e ranking, com testes unitários.
+4. **Participantes**: repositório (`listActive`/`listAll`/`archive`), ViewModel, tela de cadastro/edição e exclusão com confirmação e bloqueio em partida ativa.
+5. **Configuração da partida**: seleção padrão de todos os ativos, ações em massa, contador, memória de papéis, validações e testes.
+6. **Sessão da partida**: provider, sobreposições, fases dos assassinos e detetives, amanhecer, votação, resultado e ponto único de encerramento manual acima das sobreposições.
+7. **Encerramento e persistência**: vitória automática com status em massa, encerramento manual, `PUT` idempotente, retry, histórico, exclusão de partidas e ranking.
+8. **Acabamento**: tema dark, acessibilidade (incluindo foco do controle acima da sobreposição), movimento reduzido, testes de integração, lint, build e validação do quickstart.
 
 Cada etapa deve terminar com testes verdes e sem antecipar funcionalidades da etapa seguinte. A implementação detalhada será derivada em `tasks.md` na próxima fase do Spec Kit.
+
+**Delta pós-implementação (2026-11-17)**: a implementação já cobre as fases anteriores até a fase 13. Esta revisão gera um delta a ser refletido em `tasks.md` como fase 14, contemplando: atualização em massa na vitória dos assassinos e testes; arquivamento de participantes, telas e bloqueio; seleção padrão/em massa e memória de papéis; ponto único de encerramento; exclusão de partidas e ranking com arquivados; e atualização de fixtures/quickstart.
 
 ## 10. Riscos, limitações e decisões
 
@@ -595,15 +646,20 @@ Cada etapa deve terminar com testes verdes e sem antecipar funcionalidades da et
 |---|---|---|
 | Recarregar ou fechar o navegador perde a partida em andamento. | O narrador precisa reiniciar a partida; ela não entra no histórico. | Documentado no quickstart e na tela; estratégia aprovada (D2). |
 | Fechar a aba imediatamente após o encerramento, antes da gravação. | Partida finalizada pode não aparecer no histórico. | Resultado é exibido antes da gravação; falha gera aviso e “Tentar novamente”; JSON Server é local, tornando a escrita rápida. |
-| JSON Server não impõe unicidade de nome nem esquema. | Nomes duplicados poderiam surgir em uso multiaba; dados inválidos poderiam ser gravados manualmente. | Validação no cliente, uso por um único narrador, validação mínima nas respostas. |
+| JSON Server não impõe unicidade de nome nem esquema. | Nomes duplicados poderiam surgir em uso multiaba; dados inválidos poderiam ser gravados manualmente. | Validação no cliente (apenas cadastro ativo), uso por um único narrador, validação mínima nas respostas. |
 | Sem transações no JSON Server. | Gravação parcial se houvesse múltiplos recursos. | `MatchParticipant` embutido e `PUT` único/idempotente. |
 | Partida em andamento não é persistida. | Nenhum dado órfão; por outro lado, não há recuperação. | Sessão em memória e gravação apenas no encerramento. |
 | Uma única aba/sessão. | Duas abas podem divergir. | Fora do escopo; documentado. |
 | Sem roteador. | Sem deep links nem botão voltar do navegador. | Navegação interna suficiente para o narrador; não há requisito de URL. |
-| Nomes do histórico vêm do cadastro atual. | Edição altera o nome exibido em partidas antigas. | Comportamento exigido pela especificação. |
+| Nomes do histórico vêm do cadastro atual ou do último nome preservado no arquivamento. | Edição de ativo altera o nome exibido em partidas antigas; arquivado permanece com o último nome. | Comportamento exigido pela especificação. |
+| Arquivo `participants` cresce com registros arquivados. | Volume maior em uso prolongado. | Volume pequeno; arquivamento preserva integridade e histórico; sem exclusão física por decisão D10. |
+| Reutilização de nome de participante arquivado. | Dois registros podem exibir o mesmo nome em histórico/ranking. | Registros distintos por `id`; desempate determinístico por `participantId`; comportamento previsto na spec. |
+| Exclusão de partida é irreversível. | Perda permanente de um registro do histórico e de sua contribuição no ranking. | Confirmação obrigatória; ação disponível apenas para partidas finalizadas; sem exclusão em massa. |
+| Seleção padrão de todos os participantes. | O narrador pode iniciar com participantes indesejados se não revisar. | Contador de selecionados, ações de selecionar/desmarcar todos e validação de mínimo sempre visíveis. |
+| Encerramento manual acima da sobreposição. | Risco de foco/acessibilidade e de sobreposição de camadas. | Um único controle persistente, `z-index` explícito, confirmação acima de tudo e revisão de foco/`aria-modal`. |
 | Nome editado durante uma partida pode não atualizar a tela de partida até novo carregamento. | Pequena inconsistência visual. | Cenário não exigido; a partida usa IDs e a tela recarrega dados ao montar. |
 | `crypto.randomUUID` depende de contexto seguro. | Indisponível fora de `localhost`/HTTPS. | Fallback em `shared/lib/id.js`; uso local em `localhost`. |
-| Configuração com todos os participantes assassinos é permitida pela spec. | A primeira resolução noturna pode declarar vitória dos assassinos imediatamente. | Permitido explicitamente em Clarifications (D7); coberto por teste em US2. |
+| Configuração com todos os participantes assassinos é permitida pela spec. | A primeira resolução noturna pode declarar vitória dos assassinos e eliminar em massa os não assassinos. | Permitido explicitamente em Clarifications (D7); coberto por teste em US2 e pelos testes de vitória em massa. |
 | Dependências de teste adicionam peso ao projeto. | Instalação maior. | Necessárias para a estratégia de testes; sem E2E. |
 
 ### 10.2 Decisões e aprovações
@@ -613,12 +669,18 @@ Cada etapa deve terminar com testes verdes e sem antecipar funcionalidades da et
 | D1 | Persistir `MatchParticipant` embutido em `Match` (uma escrita) em vez de coleção separada. | Aprovado: manter embutido; evita escritas parciais e simplifica histórico/ranking. |
 | D2 | Não recuperar partida em andamento após recarregar/fechar o navegador. | Aprovado: sem recuperação; a sessão em andamento é perdida e não contabilizada. |
 | D3 | Contar o turno decisivo quando a vitória ocorre antes da votação (após a noite). | Aprovado na spec (Clarifications): o turno decisivo conta em `turnCount`. |
-| D4 | Considerar nomes únicos sem diferenciar maiúsculas/minúsculas e após `trim`. | Aprovado na spec (Clarifications): comparação case-insensitive após `trim`. |
+| D4 | Considerar nomes únicos sem diferenciar maiúsculas/minúsculas e após `trim`. | Aprovado na spec (Clarifications): comparação case-insensitive após `trim`, restrita ao cadastro ativo. |
 | D5 | Aplicar a ação de um assassino eliminado na mesma noite (resolução simultânea). | Aprovado: ações simultâneas; a escolha do assassino eliminado é aplicada. |
 | D6 | Navegação interna sem React Router. | Aprovado: navegação interna sem roteador; não há requisito de URL/deep link. |
 | D7 | Não bloquear configurações com todos os participantes assassinos, pois a spec só exige ao menos um assassino. | Aprovado: permitir; a primeira resolução noturna pode declarar vitória dos assassinos. |
-| D8 | Adotar as três interpretações de comportamento da spec (turno manual não conta; edição reflete no histórico; ranking inclui zeros) como aprovadas. | Aprovado na spec (Clarifications): turno em andamento não conta; edição reflete no histórico; ranking inclui zeros. |
+| D8 | Adotar as três interpretações de comportamento da spec (turno manual não conta; edição reflete no histórico; ranking inclui zeros) como aprovadas. | Aprovado na spec (Clarifications): turno em andamento não conta; edição reflete no histórico; ranking inclui ativos com zero e arquivados com partidas remanescentes. |
 | D9 | Adicionar `concurrently` e as dependências de teste. | Aprovado: instalar as dependências planejadas. |
+| D10 | Soft delete de participante com `deletedAt`, sem remoção física. | Aprovado (Q1): sai do cadastro ativo e das novas partidas; nome, histórico e contribuição no ranking preservados. |
+| D11 | Exclusão definitiva de partidas finalizadas com `DELETE /matches/:id`. | Aprovado (A3/A5): remove apenas a partida do histórico; ranking recalculado; participantes e outras partidas intactos. |
+| D12 | Atualização em massa de status na vitória dos assassinos antes da persistência. | Aprovado (Q2/Q3): não assassinos → `DEAD`; assassinos vivos permanecem; mortos não ressuscitam; momento da vitória registrado. |
+| D13 | Encerramento manual em ponto único persistente da tela da partida, fora dos pop-ups. | Aprovado (A1): acessível em todas as fases, inclusive durante sobreposições, com confirmação. |
+| D14 | Configuração inicia com todos os ativos selecionados, com ações em massa e memória de papéis. | Aprovado (A4): selecionar/desmarcar todos; papel preservado ao remarcar; mínimo validado após cada alteração. |
+| D15 | Separar `listActive()` e `listAll()` nos repositórios de participantes. | Aprovado: cadastro/configuração usam ativos; histórico/ranking resolvem arquivados sem duplicar filtros nos ViewModels. |
 
 ## Rastreamento de Complexidade
 
@@ -626,7 +688,7 @@ Nenhuma violação da Constituição. Não há necessidade de justificar complex
 
 ## Saídas das Fases
 
-- **Fase 0**: [research.md](./research.md)
-- **Fase 1**: [data-model.md](./data-model.md), [contracts/json-server-api.md](./contracts/json-server-api.md), [contracts/match-engine.md](./contracts/match-engine.md), [quickstart.md](./quickstart.md)
+- **Fase 0**: [research.md](./research.md) (atualizado em 2026-11-17)
+- **Fase 1**: [data-model.md](./data-model.md), [contracts/json-server-api.md](./contracts/json-server-api.md), [contracts/match-engine.md](./contracts/match-engine.md), [quickstart.md](./quickstart.md) (atualizados em 2026-11-17)
 - **Próxima fase**: `/speckit.tasks` (não executada aqui)
 

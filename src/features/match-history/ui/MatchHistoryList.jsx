@@ -1,3 +1,4 @@
+import { Button } from '@/shared/ui/Button'
 import styles from './MatchHistory.module.css'
 
 /**
@@ -20,9 +21,19 @@ function formatSurvivors(survivorCount) {
 
 /**
  * Lista de partidas finalizadas.
- * @param {{ items?: Array<object>, onSelect: (matchId: string) => void }} props
+ * @param {{
+ *   items?: Array<object>,
+ *   deletingId?: string | null,
+ *   onSelect: (matchId: string) => void,
+ *   onDelete?: (matchId: string) => void,
+ * }} props
  */
-export function MatchHistoryList({ items = [], onSelect }) {
+export function MatchHistoryList({
+  items = [],
+  deletingId = null,
+  onSelect,
+  onDelete,
+}) {
   return (
     <section className={styles.listSection} aria-labelledby="history-list-title">
       <div className={styles.sectionHeader}>
@@ -36,7 +47,7 @@ export function MatchHistoryList({ items = [], onSelect }) {
 
       <ul className={styles.list}>
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} className={styles.row}>
             <button
               type="button"
               className={styles.item}
@@ -50,10 +61,20 @@ export function MatchHistoryList({ items = [], onSelect }) {
                 {item.endedAtLabel || 'Data não informada'}
               </span>
               <span className={styles.itemMeta}>
-                {formatTurns(item.turnCount)} •{' '}
+                {formatTurns(item.turnCount)} ·{' '}
                 {formatSurvivors(item.survivorCount)}
               </span>
             </button>
+            <Button
+              variant="ghost"
+              disabled={deletingId === item.id}
+              aria-label={`Excluir partida de ${
+                item.endedAtLabel || 'data desconhecida'
+              }`}
+              onClick={() => onDelete?.(item.id)}
+            >
+              {deletingId === item.id ? 'Excluindo…' : 'Excluir partida'}
+            </Button>
           </li>
         ))}
       </ul>

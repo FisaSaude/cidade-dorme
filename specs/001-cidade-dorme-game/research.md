@@ -2,7 +2,8 @@
 
 **Feature**: `001-cidade-dorme-game`
 **Data**: 2026-11-14
-**Objetivo**: resolver as incertezas técnicas do plano antes do design detalhado, sem alterar requisitos aprovados.
+**Atualizado**: 2026-11-17
+**Objetivo**: resolver as incertezas técnicas do plano antes do design detalhado, sem alterar requisitos aprovados. A revisão de 2026-11-17 cobre seleção padrão/em massa, exclusões, ponto único de encerramento e atualização em massa de status.
 
 ## 1. Análise da estrutura existente
 
@@ -102,22 +103,23 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 
 ### D-R11 — Sobreposição genérica e frases fora do motor
 
-- **Decisão**: `SpecialOverlay` em `shared/ui` recebe `title`, `onDismiss` e um slot de ação; o mapa fase → frase fica em `features/special-announcement`.
-- **Justificativa**: atende ao requisito de reutilização sem acoplar “Cidade Dorme”, “Assassinos Acordem”, “Detetives Acordem” e “Cidade Acorda” às regras de negócio.
-- **Alternativas consideradas**: componente por frase — duplicação; sobreposição dentro do motor — acoplamento indevido.
+- **Decisão**: `SpecialOverlay` em `shared/ui` recebe apenas `title` e `onDismiss`; o mapa fase → frase fica em `features/special-announcement`. O encerramento manual não é um slot da sobreposição: fica em um ponto único persistente da tela da partida, acima dela, conforme D-R24.
+- **Justificativa**: atende ao requisito de reutilização sem acoplar “Cidade Dorme”, “Assassinos Acordem”, “Detetives Acordem” e “Cidade Acorda” às regras de negócio. A mudança evita duplicar o botão em cada pop-up (FR-096–101).
+- **Alternativas consideradas**: componente por frase — duplicação; sobreposição dentro do motor — acoplamento indevido; manter `footerAction` em cada sobreposição — contraria o ponto único aprovado.
+- **Atualização 2026-11-17**: o slot `footerAction` foi removido; a sobreposição volta a ser somente dispensável.
 
 ### D-R12 — Testes com Vitest + Testing Library
 
-- **Decisão**: Vitest para domínio, casos de uso e ViewModels; jsdom + Testing Library para poucos testes de interface.
-- **Justificativa**: nenhuma ferramenta está instalada; Vitest reaproveita a configuração Vite e é o caminho de menor atrito. A maior parte dos testes não precisa de DOM.
+- **Decisão**: Vitest para domínio, casos de uso e ViewModels; jsdom + Testing Library para poucos testes de interface. Cobrir atualização em massa de status, ranking com arquivados, exclusões e seleção padrão/em massa.
+- **Justificativa**: nenhuma ferramenta está instalada; Vitest reaproveita a configuração Vite e é o caminho de menor atrito. A maior parte dos testes não precisa de DOM. As novas regras críticas de status e exclusão ficam testáveis sem interface.
 - **Alternativas consideradas**: Jest — configuração extra para JSX/Vite; Playwright/Cypress — E2E desproporcional; apenas testes manuais — insuficiente para regras de vitória.
 
 ### D-R13 — Unicidade de nome no cliente
 
-- **Decisão**: comparar nomes após `trim`, sem diferenciar maiúsculas/minúsculas, tanto na criação quanto na edição (excluindo o próprio registro).
-- **Justificativa**: atende à especificação com um único narrador; o JSON Server não oferece constraint.
-- **Alternativas consideradas**: middleware customizado no JSON Server — complexidade operacional sem requisito; comparação exata — permitiria “Ana” e “ana”, gerando ambiguidade.
-- **Status**: aprovado (D4 na spec).
+- **Decisão**: comparar nomes após `trim`, sem diferenciar maiúsculas/minúsculas, tanto na criação quanto na edição (excluindo o próprio registro), considerando apenas participantes **ativos** (`deletedAt` nulo). Participantes arquivados mantêm o último nome e não participam da validação.
+- **Justificativa**: atende à especificação com um único narrador; o JSON Server não oferece constraint. Restringir ao cadastro ativo permite reutilizar nomes e preserva a identidade dos registros arquivados.
+- **Alternativas consideradas**: middleware customizado no JSON Server — complexidade operacional sem requisito; comparação exata — permitiria “Ana” e “ana”, gerando ambiguidade; unicidade global incluindo arquivados — impediria reutilização prevista na spec.
+- **Status**: aprovado (D4 na spec, atualizado em 2026-11-17).
 
 ### D-R14 — Contagem de turnos
 
@@ -135,9 +137,10 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 
 ### D-R16 — Ranking derivado das partidas finalizadas
 
-- **Decisão**: calcular no cliente a partir de `GET /matches?status=FINISHED`, contando `MatchParticipant` com `ALIVE`.
-- **Justificativa**: evita duplicação e mantém uma única fonte de verdade. O volume é pequeno.
-- **Alternativas consideradas**: persistir ranking — risco de inconsistência após edição/correção; calcular no JSON Server — exigiria middleware customizado.
+- **Decisão**: calcular no cliente a partir de `GET /matches?status=FINISHED` e de todos os participantes. Candidatos: ativos (inclusive com zero) e arquivados que aparecem em pelo menos uma partida finalizada remanescente. Contar `MatchParticipant` com `ALIVE`, usando os status finais após a eventual atualização em massa da vitória dos assassinos.
+- **Justificativa**: evita duplicação e mantém uma única fonte de verdade. O volume é pequeno. Arquivados com contribuição histórica continuam representados; arquivados sem partidas saem do ranking.
+- **Alternativas consideradas**: persistir ranking — risco de inconsistência após edição/correção; calcular no JSON Server — exigiria middleware customizado; incluir todos os arquivados — exibiria registros sem contribuição.
+- **Atualização 2026-11-17**: inclui arquivados com partidas remanescentes, status finais da vitória dos assassinos e desempate estável por `participantId`.
 
 ### D-R17 — Sem recuperação após recarregar/fechar
 
@@ -154,15 +157,51 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 
 ### D-R19 — Resolver nomes por referência, não por snapshot
 
-- **Decisão**: persistir apenas `participantId`; histórico e ranking resolvem o nome atual na coleção de participantes. A tela de partida carrega os participantes para exibir nomes.
-- **Justificativa**: atende à regra de que a edição do nome aparece no histórico e evita duplicação.
-- **Alternativas consideradas**: snapshot do nome na partida — ficaria desatualizado após edição; duplicar nome em `MatchParticipant` — informação redundante.
+- **Decisão**: persistir apenas `participantId`; histórico e ranking resolvem o nome atual na coleção de participantes, inclusive nos registros arquivados. A tela de partida carrega os participantes ativos para exibir nomes.
+- **Justificativa**: atende à regra de que a edição do nome aparece no histórico e evita duplicação. O arquivamento preserva o último nome sem criar snapshot na partida.
+- **Alternativas consideradas**: snapshot do nome na partida — ficaria desatualizado após edição e seria necessário para arquivados; duplicar nome em `MatchParticipant` — informação redundante.
+- **Atualização 2026-11-17**: como participantes nunca são removidos fisicamente, a resolução por referência continua válida para arquivados.
 
 ### D-R20 — Não adicionar validação de esquema ou middleware
 
 - **Decisão**: validação mínima nos repositórios e nas regras de domínio; sem Zod/Valibot e sem middleware de unicidade.
 - **Justificativa**: uma única fonte de escrita controlada, app local e escopo pequeno. Dependências adicionais não se justificam.
 - **Alternativas consideradas**: biblioteca de esquema — útil em APIs maiores, mas redundante aqui; middleware do JSON Server — operação extra para um cenário de um usuário.
+
+### D-R21 — Arquivamento de participante com `deletedAt`
+
+- **Decisão**: excluir um participante significa gravar `deletedAt` ISO no documento, mantendo o registro em `participants`. O cadastro e a configuração usam apenas `deletedAt == null`; histórico e ranking resolvem também os arquivados. Nunca usar `DELETE` físico em participantes.
+- **Justificativa**: preserva o nome e a identidade sem snapshots, evita referências órfãs nas partidas e permite reutilizar o nome no cadastro ativo. Atende Q1 e FR-081–088.
+- **Alternativas consideradas**: `DELETE` físico + snapshot de nome/participação — duplicaria dados e quebraria a regra de nome atual; bloquear exclusão com partidas — contraria a decisão Q1; coluna de arquivo separada — complexidade sem ganho.
+- **Status**: aprovado em 2026-11-17 (Q1, A2, D10).
+
+### D-R22 — Exclusão definitiva de partidas finalizadas
+
+- **Decisão**: usar `DELETE /matches/:id` para remover partidas finalizadas. A operação é definitiva, isolada em `matches`, disponível apenas no histórico e não altera participantes nem outras partidas. `404` é tratado como já removida.
+- **Justificativa**: atende FR-089–095 e A3/A5; o ranking é derivado e passa a ignorar a partida na próxima leitura.
+- **Alternativas consideradas**: soft delete de partidas — não cumpre “remover permanentemente”; exclusão em cascata de participantes — alteraria cadastro e ranking sem requisito.
+- **Status**: aprovado em 2026-11-17 (A3, A5, D11).
+
+### D-R23 — Atualização em massa de status na vitória dos assassinos
+
+- **Decisão**: quando `evaluateVictory` retorna `ASSASSINS`, aplicar uma função pura `applyAssassinsVictoryStatuses(session, phase)` antes de fechar e persistir: não assassinos vivos → `DEAD` com `eliminatedAt = { turn: currentTurn, phase }`; não assassinos já mortos mantêm o momento original; assassinos vivos permanecem `ALIVE`; assassinos mortos permanecem `DEAD`; papéis inalterados.
+- **Justificativa**: atende FR-102–110 e Q2/Q3, mantém o motor puro e garante que histórico, resultado e ranking usem os status finais. A fase é `NIGHT` ou `VOTE`, conforme onde a vitória foi declarada.
+- **Alternativas consideradas**: aplicar apenas na apresentação — persistiria status incorretos; ressuscitar assassinos mortos — contraria Q2 e a invariante de morte definitiva; registrar uma nova representação de morte — desnecessária para Q3.
+- **Status**: aprovado em 2026-11-17 (Q2, Q3, D12).
+
+### D-R24 — Ponto único de encerramento manual
+
+- **Decisão**: manter um único `FinishMatchButton` em uma camada persistente de `widgets/match-status-bar`/`LiveMatchPage`, visível em todas as fases em andamento e acima das sobreposições. Remover o `footerAction` de `SpecialOverlay`/`SpecialAnnouncement`. A confirmação fica acima de ambos. Após `FINISHED`, o botão não é oferecido.
+- **Justificativa**: atende FR-096–101 e A1, evita duplicação e mantém o encerramento acessível durante qualquer anúncio.
+- **Alternativas consideradas**: repetir o botão em cada pop-up — proibido por FR-097; esconder durante sobreposição — falha FR-098; mover o encerramento para o menu de navegação — menos consistente na condução.
+- **Status**: aprovado em 2026-11-17 (A1, D13).
+
+### D-R25 — Seleção padrão, ações em massa e memória de papéis
+
+- **Decisão**: o rascunho de configuração separa `selectedIds` de `roles`. Ao carregar os participantes ativos, todos começam selecionados; `selectAll`/`deselectAll` alteram apenas `selectedIds`; o papel atribuído é guardado por `participantId` e preservado ao desmarcar/remarcar. A contagem e a validação de mínimo são recalculadas após cada alteração.
+- **Justificativa**: atende FR-075–080 e A4, reduz o esforço do narrador e evita perda acidental de configuração.
+- **Alternativas consideradas**: começar sem seleção — contraria FR-075; armazenar papel apenas nos selecionados — perde o papel ao desmarcar; revalidar somente no envio — falha FR-080.
+- **Status**: aprovado em 2026-11-17 (A4, D14).
 
 ## 3. Unknowns resolvidos
 
@@ -176,9 +215,16 @@ Não há conflito entre a Constituição, a especificação e a estrutura atual 
 | Como navegar sem roteador? | Estado de tela em `useAppNavigation`. |
 | O que acontece ao recarregar? | Sessão perdida; partida não contabilizada; dados finalizados permanecem. |
 | Como evitar encerramento duplo? | Estado `FINISHED`, guarda no ViewModel, `savedMatchId` e `PUT` idempotente. |
-| Como calcular ranking? | Derivação de partidas finalizadas + participantes; sem persistência. |
-| Como garantir nome único? | Normalização e comparação no cliente, incluindo edição. |
+| Como calcular ranking? | Derivação de partidas finalizadas + participantes ativos e arquivados com partidas remanescentes. |
+| Como garantir nome único? | Normalização e comparação no cliente, incluindo edição, restrita ao cadastro ativo. |
+| Como excluir participante sem quebrar histórico/ranking? | Arquivamento com `deletedAt`; registro permanece e nome é preservado. |
+| Como excluir partidas do histórico? | `DELETE /matches/:id`, apenas finalizadas; ranking derivado é recalculado. |
+| Como aplicar a vitória dos assassinos? | Atualização em massa do status dos não assassinos antes de finalizar/persistir; mortos não ressuscitam. |
+| Onde fica o encerramento manual? | Em um ponto único persistente da tela da partida, acima das sobreposições. |
+| Como iniciar a configuração? | Todos os ativos pré-selecionados, com selecionar/desmarcar todos, contador e memória de papéis. |
 
 ## 4. Decisões aprovadas
 
-Todas as decisões D1–D9 foram aprovadas. D2, D3, D4, D5, D7 e D8 estão registradas na spec (Clarifications); D1, D6 e D9 estão registradas em [plan.md](./plan.md). Nenhuma decisão permanece pendente de confirmação formal.
+Todas as decisões D1–D15 foram aprovadas. D2, D3, D4, D5, D7 e D8 estão registradas na spec (Clarifications de 2026-11-14); Q1, Q2 e Q3 e as premissas A1–A5 estão registradas na spec (2026-11-17). D1, D6, D9 e D10–D15 estão registradas em [plan.md](./plan.md). Nenhuma decisão permanece pendente de confirmação formal.
+
+A revisão de 2026-11-17 incorporou D-R21 (arquivamento de participante), D-R22 (exclusão de partidas), D-R23 (status em massa na vitória dos assassinos), D-R24 (ponto único de encerramento) e D-R25 (seleção padrão/em massa e memória de papéis), além de revisar D-R11, D-R13, D-R16 e D-R19.

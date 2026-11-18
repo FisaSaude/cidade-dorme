@@ -41,10 +41,15 @@ function makeMatchParticipants() {
   ]
 }
 
-function createRepositories({ matches, participants = PARTICIPANTS }) {
+function createRepositories({ matches: initialMatches, participants = PARTICIPANTS }) {
+  let matches = initialMatches.map((match) => ({ ...match }))
+
   return {
     matchRepository: {
       listFinished: vi.fn(async () => matches.map((match) => ({ ...match }))),
+      deleteMatch: vi.fn(async (id) => {
+        matches = matches.filter((match) => match.id !== id)
+      }),
     },
     participantRepository: {
       list: vi.fn(async () =>
@@ -190,6 +195,125 @@ describe('useHistoryViewModel', () => {
     expect(result.current.viewState.detail.participants[0].name).toBe(
       'Ana Maria',
     )
+  })
+
+  it('exclui partida confirmada, fecha o detalhe e recarrega', async () => {
+    const repositories = createRepositories({
+      matches: [
+        makeFinishedMatch({
+          id: 'm-delete',
+          endedAt: '2026-02-01T01:00:00.000Z',
+        }),
+        makeFinishedMatch({
+          id: 'm-keep',
+          endedAt: '2026-01-01T01:00:00.000Z',
+        }),
+      ],
+    })
+    const { result } = await renderViewModel(repositories)
+
+    act(() => {
+      result.current.actions.selectMatch('m-delete')
+      result.current.actions.requestDelete('m-delete')
+    })
+
+    expect(result.current.viewState.deletion.open).toBe(true)
+    expect(result.current.viewState.deletion.item.id).toBe('m-delete')
+
+    await act(async () => {
+      await result.current.actions.confirmDelete()
+    })
+
+    expect(repositories.matchRepository.deleteMatch).toHaveBeenCalledWith(
+      'm-delete',
+    )
+    expect(result.current.viewState.detail).toBeNull()
+    expect(result.current.viewState.notice).toBe('Partida excluída do histórico.')
+
+    await waitFor(() =>
+      expect(result.current.viewState.items.map((item) => item.id)).toEqual([
+        'm-keep',
+      ]),
+    )
+    expect(repositories.matchRepository.listFinished).toHaveBeenCalledTimes(2)
+  })
+
+  it('cancela a exclusão sem chamar o repositório', async () => {
+    const repositories = createRepositories({
+      matches: [
+        makeFinishedMatch({
+          id: 'm-delete',
+          endedAt: '2026-02-01T01:00:00.000Z',
+        }),
+      ],
+    })
+    const { result } = await renderViewModel(repositories)
+
+    act(() => {
+      result.current.actions.requestDelete('m-delete')
+      result.current.actions.cancelDelete()
+    })
+
+    expect(result.current.viewState.deletion.open).toBe(false)
+    expect(repositories.matchRepository.deleteMatch).not.toHaveBeenCalled()
+  })
+
+  it('trata 404 como partida já removida e recarrega a lista', async () => {
+    const repositories = createRepositories({
+      matches: [
+        makeFinishedMatch({
+          id: 'm-missing',
+          endedAt: '2026-02-01T01:00:00.000Z',
+        }),
+      ],
+    })
+    repositories.matchRepository.deleteMatch.mockRejectedValueOnce(
+      new ApiError('O recurso solicitado não foi encontrado.', 404),
+    )
+    const { result } = await renderViewModel(repositories)
+
+    act(() => {
+      result.current.actions.selectMatch('m-missing')
+      result.current.actions.requestDelete('m-missing')
+    })
+
+    await act(async () => {
+      await result.current.actions.confirmDelete()
+    })
+
+    expect(result.current.viewState.notice).toBe(
+      'A partida já havia sido removida. O histórico foi atualizado.',
+    )
+    expect(result.current.viewState.detail).toBeNull()
+    expect(result.current.viewState.deletion.error).toBe('')
+    expect(repositories.matchRepository.listFinished).toHaveBeenCalledTimes(2)
+  })
+
+  it('mantém a lista e exibe erro quando a exclusão falha', async () => {
+    const repositories = createRepositories({
+      matches: [
+        makeFinishedMatch({
+          id: 'm-fail',
+          endedAt: '2026-02-01T01:00:00.000Z',
+        }),
+      ],
+    })
+    repositories.matchRepository.deleteMatch.mockRejectedValueOnce(
+      new ApiError('Falha ao excluir.', 500),
+    )
+    const { result } = await renderViewModel(repositories)
+
+    act(() => {
+      result.current.actions.requestDelete('m-fail')
+    })
+
+    await act(async () => {
+      await result.current.actions.confirmDelete()
+    })
+
+    expect(result.current.viewState.deletion.error).toBe('Falha ao excluir.')
+    expect(result.current.viewState.items).toHaveLength(1)
+    expect(result.current.viewState.deletion.open).toBe(true)
   })
 
   it('traduz falhas de carregamento e permite nova tentativa', async () => {

@@ -13,71 +13,133 @@ export const MATCH_SETUP_ROLE_OPTIONS = Object.freeze(
 
 /**
  * Estado local da configuração manual de papéis.
- * @returns {{ selections: Record<string, { role: string }> }}
+ * @typedef {{ selectedIds: string[], roles: Record<string, string> }} MatchSetupDraft
  */
-export function createMatchSetupState() {
-  return { selections: {} }
+
+/**
+ * Cria o rascunho com todos os participantes informados já selecionados.
+ * @param {Array<{ id: string }>} [participants]
+ * @returns {MatchSetupDraft}
+ */
+export function createMatchSetupDraft(participants = []) {
+  return {
+    selectedIds: participants
+      .map((participant) => participant?.id)
+      .filter((id) => typeof id === 'string' && id),
+    roles: {},
+  }
 }
 
 /**
- * Alterna a seleção de um participante, aplicando INNOCENT como padrão.
- * @param {{ selections: Record<string, { role: string }> }} state
+ * Aliased legado do rascunho vazio/selecionado.
+ * @param {Array<{ id: string }>} [participants]
+ * @returns {MatchSetupDraft}
+ */
+export function createMatchSetupState(participants = []) {
+  return createMatchSetupDraft(participants)
+}
+
+/**
+ * Alterna a seleção preservando o papel especial já escolhido.
+ * @param {MatchSetupDraft} draft
  * @param {string} participantId
+ * @returns {MatchSetupDraft}
  */
-export function toggleParticipantSelection(state, participantId) {
+export function toggleSelection(draft, participantId) {
   if (typeof participantId !== 'string' || !participantId) {
-    return state
+    return draft
   }
 
-  const selections = { ...state.selections }
+  const selected = draft.selectedIds.includes(participantId)
 
-  if (selections[participantId]) {
-    delete selections[participantId]
-  } else {
-    selections[participantId] = { role: PlayerRole.INNOCENT }
+  return {
+    ...draft,
+    selectedIds: selected
+      ? draft.selectedIds.filter((id) => id !== participantId)
+      : [...draft.selectedIds, participantId],
   }
-
-  return { ...state, selections }
 }
 
 /**
- * Define o papel de um participante já selecionado.
- * @param {{ selections: Record<string, { role: string }> }} state
+ * @param {MatchSetupDraft} draft
+ * @param {string} participantId
+ * @returns {MatchSetupDraft}
+ */
+export function toggleParticipantSelection(draft, participantId) {
+  return toggleSelection(draft, participantId)
+}
+
+/**
+ * Seleciona todos os participantes disponíveis mantendo papéis existentes.
+ * @param {MatchSetupDraft} draft
+ * @param {Array<{ id: string }>} [participants]
+ * @returns {MatchSetupDraft}
+ */
+export function selectAll(draft, participants = []) {
+  return {
+    ...draft,
+    selectedIds: participants
+      .map((participant) => participant?.id)
+      .filter((id) => typeof id === 'string' && id),
+  }
+}
+
+/**
+ * Desmarca todos sem apagar os papéis armazenados.
+ * @param {MatchSetupDraft} draft
+ * @returns {MatchSetupDraft}
+ */
+export function deselectAll(draft) {
+  return { ...draft, selectedIds: [] }
+}
+
+/**
+ * Define o papel de um participante selecionado.
+ * @param {MatchSetupDraft} draft
  * @param {string} participantId
  * @param {string} role
+ * @returns {MatchSetupDraft}
  */
-export function setParticipantRole(state, participantId, role) {
-  if (!state.selections[participantId] || !isPlayerRole(role)) {
-    return state
+export function setParticipantRole(draft, participantId, role) {
+  if (
+    !draft.selectedIds.includes(participantId) ||
+    !isPlayerRole(role)
+  ) {
+    return draft
   }
 
   return {
-    ...state,
-    selections: {
-      ...state.selections,
-      [participantId]: { role },
-    },
+    ...draft,
+    roles: { ...draft.roles, [participantId]: role },
   }
 }
 
 /**
- * Cruza o cadastro de participantes com as seleções locais.
+ * Cruza o cadastro de participantes com o rascunho local.
  * @param {Array<{ id: string, name: string }>} participants
- * @param {{ selections: Record<string, { role: string }> }} state
+ * @param {MatchSetupDraft} draft
  */
-export function getMatchSetupRows(participants = [], state) {
-  const selections = state?.selections ?? {}
+export function getMatchSetupRows(participants = [], draft) {
+  const selectedIds = draft?.selectedIds ?? []
+  const roles = draft?.roles ?? {}
 
-  return participants.map((participant) => {
-    const selection = selections[participant.id]
+  return participants.map((participant) => ({
+    participantId: participant.id,
+    name: participant.name,
+    selected: selectedIds.includes(participant.id),
+    role: roles[participant.id] ?? PlayerRole.INNOCENT,
+  }))
+}
 
-    return {
-      participantId: participant.id,
-      name: participant.name,
-      selected: Boolean(selection),
-      role: selection?.role ?? PlayerRole.INNOCENT,
-    }
-  })
+/**
+ * Quantidade de selecionados em relação ao total exibido.
+ * @param {Array<{ selected: boolean }>} rows
+ */
+export function getMatchSetupCounts(rows = []) {
+  return {
+    selectedCount: rows.filter((row) => row.selected).length,
+    totalCount: rows.length,
+  }
 }
 
 /**

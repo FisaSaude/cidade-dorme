@@ -15,6 +15,8 @@ import styles from './MatchSetupForm.module.css'
  *   disabled?: boolean,
  *   onToggle?: (participantId: string) => void,
  *   onChangeRole?: (participantId: string, role: string) => void,
+ *   onSelectAll?: () => void,
+ *   onDeselectAll?: () => void,
  *   onSubmit?: () => void,
  * }} props
  */
@@ -32,6 +34,8 @@ export function MatchSetupForm({
   disabled = false,
   onToggle,
   onChangeRole,
+  onSelectAll,
+  onDeselectAll,
   onSubmit,
 }) {
   const isDisabled = disabled || submitting
@@ -48,6 +52,28 @@ export function MatchSetupForm({
         <p className={styles.description}>
           Selecione pelo menos cinco participantes e atribua os papéis manualmente.
           Quem não receber papel especial é inocente.
+        </p>
+      </div>
+
+      <div className={styles.bulkActions}>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={isDisabled}
+          onClick={onSelectAll}
+        >
+          Selecionar todos
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={isDisabled}
+          onClick={onDeselectAll}
+        >
+          Desmarcar todos
+        </Button>
+        <p className={styles.counter} aria-live="polite">
+          {summary.selectedCount} de {rows.length} selecionados
         </p>
       </div>
 

@@ -106,9 +106,19 @@ describe('vitória automática', () => {
     )
 
     expect(aliveAssassins).toHaveLength(2)
-    expect(aliveOthers).toHaveLength(2)
+    expect(aliveOthers).toHaveLength(0)
     expect(next.match.winner).toBe(MatchWinner.ASSASSINS)
     expect(next.match.turnCount).toBe(3)
+    expect(
+      next.match.participants
+        .filter((participant) => participant.role !== PlayerRole.ASSASSIN)
+        .every(
+          (participant) =>
+            participant.status === PlayerStatus.DEAD &&
+            participant.eliminatedAt.turn === 3 &&
+            participant.eliminatedAt.phase === 'NIGHT',
+        ),
+    ).toBe(true)
   })
 
   it('considera vitória dos assassinos em superioridade após a noite', () => {

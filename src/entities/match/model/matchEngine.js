@@ -8,7 +8,11 @@ import { GameRuleError } from '@/shared/lib/errors'
 import { validateMatchConfiguration } from './matchConfiguration'
 import { EliminationPhase, getNextAnnouncementPhase, MatchPhase } from './matchPhases'
 import { MatchClosureReason, MatchStatus } from './matchStatus'
-import { MatchWinner, evaluateVictory } from './victory'
+import {
+  MatchWinner,
+  applyAssassinsVictoryStatuses,
+  evaluateVictory,
+} from './victory'
 import {
   getAliveDetectives,
   getParticipantById,
@@ -192,7 +196,12 @@ export function resolveAssassinsPhase(session, endedAt) {
   const winner = evaluateVictory(withNightResult)
 
   if (winner === MatchWinner.INNOCENTS || winner === MatchWinner.ASSASSINS) {
-    return finishWithVictory(withNightResult, winner, endedAt)
+    const resolved =
+      winner === MatchWinner.ASSASSINS
+        ? applyAssassinsVictoryStatuses(withNightResult, 'NIGHT')
+        : withNightResult
+
+    return finishWithVictory(resolved, winner, endedAt)
   }
 
   return {
@@ -343,11 +352,16 @@ export function registerVote(session, result, endedAt) {
       throw new TypeError('endedAt is required when finishing with victory.')
     }
 
+    const resolved =
+      winner === MatchWinner.ASSASSINS
+        ? applyAssassinsVictoryStatuses(withVote, 'VOTE')
+        : withVote
+
     return {
-      ...withVote,
+      ...resolved,
       phase: MatchPhase.FINISHED,
       match: {
-        ...withVote.match,
+        ...resolved.match,
         status: MatchStatus.FINISHED,
         closureReason: MatchClosureReason.VICTORY,
         winner,

@@ -1,11 +1,14 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { validateMatchConfiguration } from '@/entities/match'
 import {
-  createMatchSetupState,
+  createMatchSetupDraft,
+  deselectAll,
+  getMatchSetupCounts,
   getMatchSetupRows,
   getMatchSetupSummary,
+  selectAll,
   setParticipantRole as updateParticipantRole,
-  toggleParticipantSelection,
+  toggleSelection,
   toMatchConfiguration,
 } from '@/features/match-configuration/model/matchSetup'
 import {
@@ -36,7 +39,7 @@ function toUserMessage(error) {
 /**
  * ViewModel da configuração manual de uma nova partida.
  * @param {{
- *   participantRepository: { list: Function },
+ *   participantRepository: { list?: Function, listActive?: Function },
  *   startMatch: (configuration: object) => unknown,
  *   onStarted?: () => void,
  * }} options
@@ -54,10 +57,17 @@ export function useMatchSetupViewModel({
     throw new Error('startMatch is required.')
   }
 
-  const load = useCallback(() => participantRepository.list(), [participantRepository])
+  const load = useCallback(
+    () =>
+      typeof participantRepository.listActive === 'function'
+        ? participantRepository.listActive()
+        : participantRepository.list(),
+    [participantRepository],
+  )
   const { data, error, loading, retry } = useAsyncData(load)
 
-  const [setupState, setSetupState] = useState(() => createMatchSetupState())
+  const [draft, setDraft] = useState(() => createMatchSetupDraft())
+  const [initialized, setInitialized] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -69,11 +79,21 @@ export function useMatchSetupViewModel({
     [data],
   )
 
+  useEffect(() => {
+    if (loading || initialized) {
+      return
+    }
+
+    setDraft(createMatchSetupDraft(participants))
+    setInitialized(true)
+  }, [initialized, loading, participants])
+
   const rows = useMemo(
-    () => getMatchSetupRows(participants, setupState),
-    [participants, setupState],
+    () => getMatchSetupRows(participants, draft),
+    [draft, participants],
   )
   const summary = useMemo(() => getMatchSetupSummary(rows), [rows])
+  const counts = useMemo(() => getMatchSetupCounts(rows), [rows])
   const loadError = error ? toUserMessage(error) : ''
 
   const blockingMessage = useMemo(() => {
@@ -86,12 +106,22 @@ export function useMatchSetupViewModel({
   }, [rows])
 
   const toggleParticipant = useCallback((participantId) => {
-    setSetupState((current) => toggleParticipantSelection(current, participantId))
+    setDraft((current) => toggleSelection(current, participantId))
+    setErrorMessage('')
+  }, [])
+
+  const selectAllParticipants = useCallback(() => {
+    setDraft((current) => selectAll(current, participants))
+    setErrorMessage('')
+  }, [participants])
+
+  const deselectAllParticipants = useCallback(() => {
+    setDraft((current) => deselectAll(current))
     setErrorMessage('')
   }, [])
 
   const changeRole = useCallback((participantId, role) => {
-    setSetupState((current) => updateParticipantRole(current, participantId, role))
+    setDraft((current) => updateParticipantRole(current, participantId, role))
     setErrorMessage('')
   }, [])
 
@@ -121,6 +151,7 @@ export function useMatchSetupViewModel({
       participants,
       rows,
       summary,
+      counts,
       loading,
       loadError,
       blockingMessage,
@@ -129,6 +160,8 @@ export function useMatchSetupViewModel({
     },
     actions: {
       toggleParticipant,
+      selectAll: selectAllParticipants,
+      deselectAll: deselectAllParticipants,
       setParticipantRole: changeRole,
       submit,
       retry,

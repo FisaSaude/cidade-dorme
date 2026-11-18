@@ -119,7 +119,12 @@ describe('Dawn and voting integration', () => {
     await user.selectOptions(votingSelect, 'id-5')
     await user.click(screen.getByRole('button', { name: 'Registrar votação' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
+    await user.click(
+      await screen.findByRole('dialog', { name: 'Cidade Dorme' }),
+    )
+    await user.click(
+      await screen.findByRole('dialog', { name: 'Assassinos Acordem' }),
+    )
     expect(getStatusValue('Turno')).toBe('2')
     expect(getStatusValue('Mortos')).toBe('2')
   })
@@ -142,7 +147,12 @@ describe('Dawn and voting integration', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Registrar votação' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
+    await user.click(
+      await screen.findByRole('dialog', { name: 'Cidade Dorme' }),
+    )
+    await user.click(
+      await screen.findByRole('dialog', { name: 'Assassinos Acordem' }),
+    )
     expect(getStatusValue('Turno')).toBe('2')
     expect(getStatusValue('Mortos')).toBe('0')
   })

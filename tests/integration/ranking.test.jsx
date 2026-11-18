@@ -1,5 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { HistoryPage } from '@/pages/history/HistoryPage'
 import { RankingPage } from '@/pages/ranking/RankingPage'
 import {
   makeFinishedMatch,
@@ -32,6 +34,9 @@ function createRepositories({ matches, participants = PARTICIPANTS }) {
     },
     participantRepository: {
       list: vi.fn(async () =>
+        participants.map((participant) => ({ ...participant })),
+      ),
+      listAll: vi.fn(async () =>
         participants.map((participant) => ({ ...participant })),
       ),
     },
@@ -132,5 +137,133 @@ describe('RankingPage (integração)', () => {
     expect(
       await screen.findByText('Nenhum participante cadastrado'),
     ).toBeTruthy()
+  })
+
+  it('inclui participante arquivado referenciado por partida finalizada e omite arquivado sem partidas', async () => {
+    const repositories = createRepositories({
+      participants: [
+        { id: 'p-1', name: 'Ana', deletedAt: null },
+        {
+          id: 'p-2',
+          name: 'Bruno',
+          deletedAt: '2026-01-10T00:00:00.000Z',
+        },
+        {
+          id: 'p-3',
+          name: 'Carla',
+          deletedAt: '2026-01-10T00:00:00.000Z',
+        },
+      ],
+      matches: [
+        makeFinishedMatch({
+          id: 'm-archived',
+          participants: makeMatchParticipants('m-archived', [
+            ['p-1', 'DEAD'],
+            ['p-2', 'ALIVE'],
+          ]),
+        }),
+      ],
+    })
+
+    renderPage(repositories)
+
+    const rows = await readRows()
+
+    expect(rows.map((row) => [row[1], row[2]])).toEqual([
+      ['Bruno', '1'],
+      ['Ana', '0'],
+    ])
+    expect(repositories.participantRepository.listAll).toHaveBeenCalled()
+  })
+
+  it('distingue identidades quando um nome é reutilizado por participante ativo', async () => {
+    const repositories = createRepositories({
+      participants: [
+        {
+          id: 'p-old',
+          name: 'Ana',
+          deletedAt: '2026-01-10T00:00:00.000Z',
+        },
+        { id: 'p-new', name: 'Ana', deletedAt: null },
+      ],
+      matches: [
+        makeFinishedMatch({
+          id: 'm-old',
+          participants: makeMatchParticipants('m-old', [['p-old', 'ALIVE']]),
+        }),
+      ],
+    })
+
+    renderPage(repositories)
+
+    const rows = await readRows()
+
+    expect(rows).toEqual([
+      ['1º', 'Ana', '1'],
+      ['2º', 'Ana', '0'],
+    ])
+  })
+
+  it('exibe participante arquivado no detalhe do histórico', async () => {
+    const user = userEvent.setup()
+    const repositories = createRepositories({
+      participants: [
+        {
+          id: 'p-2',
+          name: 'Bruno',
+          deletedAt: '2026-01-10T00:00:00.000Z',
+        },
+      ],
+      matches: [
+        makeFinishedMatch({
+          id: 'm-archived',
+          participants: makeMatchParticipants('m-archived', [
+            ['p-2', 'ALIVE'],
+          ]),
+        }),
+      ],
+    })
+
+    render(
+      <HistoryPage
+        matchRepository={repositories.matchRepository}
+        participantRepository={repositories.participantRepository}
+      />,
+    )
+
+    await user.click(
+      await screen.findByRole('button', { name: /Ver detalhes/ }),
+    )
+
+    expect(await screen.findByText('Bruno')).toBeTruthy()
+  })
+
+  it('recalcula as sobrevivências após a exclusão de uma partida', async () => {
+    const first = makeFinishedMatch({
+      id: 'm-1',
+      participants: makeMatchParticipants('m-1', [['p-1', 'ALIVE']]),
+    })
+    const second = makeFinishedMatch({
+      id: 'm-2',
+      participants: makeMatchParticipants('m-2', [['p-1', 'ALIVE']]),
+    })
+    let matches = [first, second]
+    const repositories = createRepositories({
+      matches: [],
+      participants: [{ id: 'p-1', name: 'Ana' }],
+    })
+    repositories.matchRepository.listFinished.mockImplementation(async () =>
+      matches.map((match) => ({ ...match })),
+    )
+
+    const firstRender = renderPage(repositories)
+    let rows = await readRows()
+    expect(rows).toEqual([['1º', 'Ana', '2']])
+    firstRender.unmount()
+
+    matches = [second]
+    renderPage(repositories)
+    rows = await readRows()
+    expect(rows).toEqual([['1º', 'Ana', '1']])
   })
 })

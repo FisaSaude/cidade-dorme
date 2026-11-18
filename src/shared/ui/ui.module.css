@@ -211,7 +211,7 @@
   padding: 24px;
   background: rgba(5, 5, 8, 0.78);
   backdrop-filter: blur(4px);
-  z-index: var(--z-dialog-elevated, 1200);
+  z-index: var(--z-confirm-dialog, 1200);
   animation: cd-fade-in 180ms ease both;
 }
 

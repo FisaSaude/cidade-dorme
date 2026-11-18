@@ -12,6 +12,10 @@ description: "Lista de tarefas para implementação do Cidade Dorme"
 
 **Organization**: Tarefas agrupadas por história de usuário, na ordem de prioridade do `spec.md`. Fases de Setup, Foundational e Polish não recebem rótulo de história.
 
+**Atualização 2026-11-17**: as Fases 14–20 registram o delta aprovado na spec revisada (exclusões, seleção padrão/em massa, ponto único de encerramento, vitória dos assassinos com status em massa e ranking com arquivados). T053 e T085 foram superadas por T143–T147; a Fase 14 substitui as notas antigas sobre ausência de exclusão.
+
+**Atualização 2026-11-17 (correção de UI)**: a Fase 21 corrige a exibição de elementos concorrentes durante os pop-ups de tela cheia (anúncios "Cidade Dorme", "Assassinos Acordem", "Detetives Acordem" e "Cidade Acorda"). Ela isola a sobreposição em portal, dedica camadas de empilhamento para conteúdo, anúncio, ponto único de encerramento e confirmação, e garante que apenas o `FinishMatchButton` permaneça acessível durante o anúncio.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: pode executar em paralelo (arquivos diferentes, sem dependência de tarefa incompleta).
@@ -140,7 +144,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 
 ### Implementation for User Story 3
 
-- [X] T053 [P] [US3] Implementar `src/shared/ui/SpecialOverlay.jsx` com `position: fixed; inset: 0`, `role="dialog"`, `aria-modal="true"`, dispensa por clique/Enter/Espaço, slot `footerAction` com `stopPropagation` e animações desativadas por `prefers-reduced-motion`.
+- [X] T053 [P] [US3] Implementar `src/shared/ui/SpecialOverlay.jsx` com `position: fixed; inset: 0`, `role="dialog"`, `aria-modal="true"`, dispensa por clique/Enter/Espaço e animações desativadas por `prefers-reduced-motion`. (O slot `footerAction` original foi removido por T140; o overlay voltou a ser apenas dispensável.)
 - [X] T054 [US3] Implementar `src/features/special-announcement/model/announcements.js` e `src/features/special-announcement/ui/SpecialAnnouncement.jsx`, mantendo as frases fora do motor.
 - [X] T055 [US3] Implementar `dismissAnnouncement(session)` em `src/entities/match/model/matchEngine.js` com transições permitidas e erro `INVALID_PHASE`.
 - [X] T056 [US3] Implementar `setAssassinTarget` e `resolveAssassinsPhase` em `src/entities/match/model/matchEngine.js`: validar fase/ator/alvo, deduplicar alvos, eliminar cada alvo uma única vez com `eliminatedAt = { turn: currentTurn, phase: "NIGHT" }`, preencher `nightResult.eliminatedParticipantIds`, avaliar vitória; se houver vitória, definir `status = FINISHED`, `closureReason = VICTORY`, `winner`, `endedAt` recebido, `phase = FINISHED` e incrementar `turnCount` (D3); senão, seguir para detetives ou amanhecer, omitindo a fase sem detetives vivos.
@@ -221,7 +225,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - [X] T082 [US6] Implementar `finishManually(session, endedAt)` em `src/entities/match/model/matchEngine.js` permitindo qualquer fase não final, sem eliminar ninguém, sem alterar `turnCount` e rejeitando partida já finalizada.
 - [X] T083 [US6] Implementar `src/features/match-closure/model/closure.js` e `src/features/match-closure/ui/FinishMatchButton.jsx` com abertura do diálogo, confirmação, cancelamento e suporte a `stopPropagation` em sobreposições.
 - [X] T084 [US6] Estender `src/app/providers/MatchSessionProvider.jsx` e `src/pages/live-match/useLiveMatchViewModel.js` com `finishManually`, estado do diálogo de confirmação e mensagens em português.
-- [X] T085 [US6] Integrar o encerramento manual em `src/pages/live-match/LiveMatchPage.jsx` em todas as fases e no `footerAction` de `SpecialOverlay`, garantindo exclusão do turno em andamento e reutilização da persistência de US5.
+- [X] T085 [US6] Integrar o encerramento manual em `src/pages/live-match/LiveMatchPage.jsx` em todas as fases, garantindo exclusão do turno em andamento e reutilização da persistência de US5. (A integração via `footerAction` foi substituída pelo ponto único em T143–T144.)
 
 **Checkpoint**: encerramento manual seguro, persistido e coerente com o ranking.
 
@@ -320,6 +324,13 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - **US8 (Phase 10)**: depende de US5/US6 (persistência final) e de US7 apenas para coerência de dados derivados; pode executar em paralelo com US7 após T075/T077.
 - **Polish (Phase 11)**: depende de todas as histórias desejadas.
 - **Validation (Phase 12)**: depende da Phase 11 e de todas as histórias implementadas; executada após T103/T104.
+- **Delta US1 (Phase 14)**: depende de US1/US2 e de T114; introduz arquivamento e bloqueio pela partida ativa.
+- **Delta US2 (Phase 15)**: depende de US2 e do delta de US1 apenas para a fonte de ativos; pode executar em paralelo com a Phase 14 após T121/T122.
+- **Delta US5 (Phase 16)**: depende de US5 e de `victory.js`/`matchEngine.js` estáveis; independente das fases 14/15.
+- **Delta US6 (Phase 17)**: depende de US6 e de `SpecialOverlay`/`MatchStatusBar`; independente das fases 14–16.
+- **Delta US7 (Phase 18)**: depende de US7 e de `matchRepository`; independente das fases 14–17.
+- **Delta US8 (Phase 19)**: depende de US8 e dos deltas US1/US7 para candidatos e recálculo; executar após T121/T122/T151.
+- **Delta Polish (Phase 20)**: depende das Fases 14–19.
 
 ### User Story Dependencies
 
@@ -331,6 +342,7 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - **US6 (P2)**: depende de US5 para reutilizar a gravação final.
 - **US7 (P3)**: depende de US5/US6.
 - **US8 (P3)**: depende de US5/US6.
+- **Delta 2026-11-17**: US1 (Phase 14) pode começar após T114 e antes das demais; US2 (Phase 15) após T121/T122; US5 (Phase 16) é independente; US6 (Phase 17) é independente; US7 (Phase 18) é independente; US8 (Phase 19) após T121/T122/T151.
 
 ### Within Each User Story
 
@@ -351,6 +363,13 @@ Projeto único SPA: código em `src/` (FSD + MVVM), testes em `tests/unit` e `te
 - US7 e US8: após T075/T077, as duas histórias podem executar em paralelo por equipes distintas.
 - Polish: T097–T100 em paralelo.
 - Validation: T105 e T109 em paralelo; T106–T108 e T110–T112 executam após a implementação estabilizada.
+- Delta US1: T117, T118, T119 e T120 em paralelo (arquivos de teste distintos); T121–T122 em sequência; T123–T125 podem iniciar após T122; T126–T128 após T125.
+- Delta US2: T129 e T130 em paralelo; T131–T133 em sequência; T134 depende de T132/T133.
+- Delta US5: T135–T137 em paralelo; T138–T139 em sequência; T140 depende de T139.
+- Delta US6: T141 e T142 em paralelo; T143–T147 em sequência por arquivo compartilhado de tela.
+- Delta US7: T148 e T149 em paralelo; T151–T152 em sequência; T153–T155 após T151/T152.
+- Delta US8: T156 e T157 em paralelo; T158–T159 em sequência.
+- Delta Polish: T160–T162 em paralelo; T163–T165 após o delta implementado.
 
 ---
 
@@ -381,6 +400,21 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 
 ---
 
+## Parallel Example: Delta 2026-11-17
+
+```text
+Tarefa: "US1 — escrever tests/unit/participantArchive.test.js"
+Tarefa: "US1 — escrever tests/unit/participantRepository.archive.test.js"
+Tarefa: "US1 — escrever tests/unit/participantDeletion.test.js"
+
+Tarefa: "US5 — escrever tests/unit/assassinsVictoryStatuses.test.js"
+Tarefa: "US5 — escrever tests/unit/matchEngine.assassinsVictory.test.js"
+Tarefa: "US5 — atualizar tests/unit/matchVictory.test.js"
+
+Tarefa: "US7 — escrever tests/unit/matchDeletion.test.js"
+Tarefa: "US8 — ampliar tests/unit/ranking.test.js"
+```
+
 ## Implementation Strategy
 
 ### MVP Incremental
@@ -391,6 +425,7 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 4. **Inteligência histórica**: US7 + US8 — histórico e ranking derivados.
 5. **Acabamento**: Phase 11 — erros, acessibilidade, identidade visual, integridade e validação final.
 6. **Validação consolidada**: Phase 12 — evidências de contratos, regras, persistência, acessibilidade e gates de qualidade.
+7. **Delta 2026-11-17**: Fases 14–19 podem ser entregues como incrementos independentes (exclusão de participantes, seleção em massa, status em massa, ponto único, exclusão de partidas, ranking), fechando com a Phase 20.
 
 ### Regras críticas cobertas explicitamente
 
@@ -412,6 +447,12 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 - Turno decisivo contabilizado em vitória noturna: T073, T110.
 - Ranking com participantes de zero sobrevivências: T092, T094, T110.
 - Sobreposições dispensadas por clique ou teclado: T052, T098, T109.
+- Exclusão de participante por arquivamento e bloqueio na partida ativa: T117–T128.
+- Seleção padrão/em massa, contador e memória de papéis: T129–T134.
+- Status em massa na vitória dos assassinos antes da persistência: T135–T140.
+- Ponto único de encerramento acima das sobreposições: T141–T147.
+- Exclusão definitiva de partidas finalizadas e recálculo do ranking: T148–T155.
+- Ranking com arquivados, sobreviventes finais e desempate por ID: T156–T159.
 
 ### Definition of Done por tarefa
 
@@ -419,6 +460,8 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 - Testes indicados escritos e verdes (ou manualmente validados quando a tarefa for de validação).
 - Nenhuma regra de negócio duplicada na View.
 - Nenhuma ação noturna, investigação ou voto individual enviado ao JSON Server.
+- Nenhum `DELETE /participants/:id`; exclusão de participante é `PATCH` com `deletedAt`.
+- Na vitória dos assassinos, o documento persistido contém os status em massa e não ressuscita mortos.
 - `npm run lint` e `npm run build` sem erros ao final de cada fase.
 
 ---
@@ -427,11 +470,11 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 
 - Tarefas `[P]` não compartilham arquivos e podem executar em paralelo.
 - O motor puro (`src/entities/match/model/matchEngine.js`) concentra regras; ViewModels apenas orquestram, traduzem códigos e persistem o resultado final.
-- Não há tarefa para exclusão de participantes, sorteio de papéis, autenticação, roteador ou persistência de turnos, pois estão fora do escopo aprovado.
+- Exclusão de participante é arquivamento com `deletedAt` (Fase 14); exclusão de partida finalizada é definitiva (Fase 18); não há exclusão em massa, restauração, sorteio de papéis, autenticação, roteador ou persistência de turnos.
 - O turno corrente é derivado como `turnCount + 1`; o encerramento manual não incrementa `turnCount`.
 - A partida em andamento vive apenas em memória; recarregar ou fechar o navegador a descarta, sem registro órfão.
-- Consistência do JSON Server: somente `participants` e `matches` finalizadas; nomes resolvidos por `participantId`.
-- Decisões D3, D4 e D7 foram aprovadas na spec (Clarifications); as demais decisões D1–D9 do plano permanecem registradas como pendentes de aprovação formal, embora as tarefas adotem as recomendações aprovadas no planejamento.
+- Consistência do JSON Server: somente `participants` (ativos e arquivados) e `matches` finalizadas; nomes resolvidos por `participantId`.
+- As decisões D1–D15, Q1–Q3 e as premissas A1–A5 estão aprovadas; o delta está refletido em `plan.md` (2026-11-17) e nas Fases 14–20.
 
 ## Phase 13: Convergence
 
@@ -439,3 +482,224 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 - [X] T114 Criar `src/entities/match-participant/index.js` e substituir os imports profundos entre slices de entidades em `src/entities`, `src/features`, `src/pages` e `src/widgets` pelos índices públicos correspondentes per plan: §1.1 (partial)
 - [X] T115 Preservar a imutabilidade da propriedade `role` também em `eliminateMatchParticipant` e ampliar `tests/unit/matchParticipant.test.js` para verificar o descritor após a eliminação per T017 (partial)
 - [X] T116 Corrigir `tests/integration/nightPhases.test.jsx` para cobrir de fato a omissão da fase dos detetives sem detetive vivo e a ausência de executores/alvos mortos per T052 (partial)
+
+---
+
+## Phase 14: User Story 1 — Gerenciar e excluir participantes (Delta 2026-11-17) (Priority: P1)
+
+**Goal**: excluir participantes por arquivamento (`deletedAt`), preservando histórico, nome e ranking; bloquear a exclusão quando o participante estiver na partida ativa; permitir reutilização do nome de um arquivado.
+
+**Independent Test**: cadastrar “Ana” e “Bruno”, finalizar uma partida com ambos, excluir “Ana” com confirmação, confirmar que ela sai do cadastro ativo e das novas partidas, mas permanece no histórico/ranking; cadastrar novamente “Ana” e confirmar IDs distintos; tentar excluir um participante da partida em andamento e confirmar o bloqueio.
+
+### Tests for User Story 1
+
+- [X] T117 [P] [US1] Escrever `tests/unit/participantArchive.test.js` cobrindo `deletedAt: null` = ativo, `deletedAt` ISO = arquivado, ausência de `deletedAt` normalizada para `null`, `isParticipantActive`, `archiveParticipant` preservando `id` e o último `name`, unicidade apenas entre ativos e reutilização de nome de arquivado com identidades distintas.
+- [X] T118 [US1] Escrever `tests/unit/participantRepository.archive.test.js` cobrindo `listActive()` filtrando `deletedAt != null`, `listAll()` retornando ativos e arquivados, `archive(id, deletedAt)` via `PATCH /participants/:id` com payload `{ deletedAt }`, preservação de `deletedAt` na resposta, normalização de ausência para `null` e `ApiError` em `404`/resposta inválida.
+- [X] T119 [P] [US1] Escrever `tests/unit/participantDeletion.test.js` cobrindo a decisão pura de exclusão: bloqueio quando `participantId` pertence aos IDs da partida ativa, permissão caso contrário, mensagem/código de bloqueio e confirmação sem alterar dados quando cancelada.
+- [X] T120 [US1] Escrever `tests/unit/useParticipantsViewModel.test.jsx` (ou ampliar o existente) cobrindo carregamento apenas de ativos, exclusão com confirmação, cancelamento, arquivamento com `now()` injetado, bloqueio na partida ativa, recarga da lista e mensagens em português.
+
+### Implementation for User Story 1
+
+- [X] T121 [US1] Implementar em `src/entities/participant/model/participant.js` os helpers de `deletedAt` (`null`/ISO, ausente → `null`), `isParticipantActive`, `archiveParticipant` e validação de duplicidade restrita a ativos; exportar por `src/entities/participant/index.js`.
+- [X] T122 [US1] Atualizar `src/entities/participant/api/participantRepository.js` para `listActive()`, `listAll()` e `archive(id, deletedAt)` usando `httpClient.patch`; fazer `assertParticipant` aceitar e normalizar `deletedAt`; manter `list` compatível ou redirecionar para `listAll`; atualizar exportações públicas.
+- [X] T123 [US1] Implementar `src/features/participant-deletion/model/participantDeletion.js` com a verificação de bloqueio por IDs da partida ativa e a confirmação/cancelamento, exportando pela API pública do slice.
+- [X] T124 [US1] Implementar `src/features/participant-deletion/ui/DeleteParticipantDialog.jsx` e `DeleteParticipantButton.jsx` (com CSS Module) reutilizando `src/shared/ui/ConfirmDialog.jsx`, com ação de excluir, cancelar e mensagem de bloqueio.
+- [X] T125 [US1] Atualizar `src/pages/participants/useParticipantsViewModel.js` para carregar ativos, orquestrar a exclusão com `archive` e `now`, expor `deletingId`, estado de confirmação e bloqueio, tratar erros e recarregar a lista após sucesso.
+- [X] T126 [US1] Expor os `participantId` da partida ativa em `src/app/providers/MatchSessionProvider.jsx` e consumi-los no ViewModel de participantes; ampliar `tests/unit/MatchSessionProvider.test.jsx` para o novo valor derivado.
+- [X] T127 [US1] Atualizar `src/widgets/participants-table/ParticipantsTable.jsx` e `src/pages/participants/ParticipantsPage.jsx` com ação de excluir, confirmação, estado de bloqueio e atualização da lista, mantendo edição e criação existentes.
+- [X] T128 [US1] Escrever `tests/integration/participantDeletion.test.jsx` cobrindo confirmação, cancelamento, bloqueio em partida ativa, saída do cadastro/novas partidas, histórico/ranking preservados, reutilização de nome e ausência de `DELETE` físico de participante.
+
+**Checkpoint**: US1 permite excluir com segurança e sem quebrar vínculos históricos.
+
+---
+
+## Phase 15: User Story 2 — Configurar uma nova partida (Delta 2026-11-17) (Priority: P1)
+
+**Goal**: iniciar a configuração com todos os ativos selecionados, oferecer selecionar/desmarcar todos, exibir o contador e preservar o papel especial ao desmarcar/remarcar.
+
+**Independent Test**: abrir a configuração com seis ativos, confirmar “6 de 6”, desmarcar todos, selecionar cinco, atribuir um assassino, desmarcar/remarcar esse assassino e confirmar que o papel foi preservado; iniciar e verificar os papéis.
+
+### Tests for User Story 2
+
+- [X] T129 [P] [US2] Ampliar `tests/unit/matchSetup.test.js` cobrindo `selectedIds` iniciado com todos os ativos, `selectAll`, `deselectAll`, alternância individual, contador de selecionados, papéis preservados em `roles` ao desmarcar/remarcar e ausência de arquivados no rascunho.
+- [X] T130 [US2] Ampliar `tests/unit/useMatchSetupViewModel.test.jsx` cobrindo carregamento apenas de ativos, criação do rascunho padrão, ações em massa, contador após cada alteração, validação de mínimo/assassino após alteração e conversão apenas dos selecionados em configuração.
+
+### Implementation for User Story 2
+
+- [X] T131 [US2] Refatorar `src/features/match-configuration/model/matchSetup.js` para o rascunho `{ selectedIds, roles }`, com `createMatchSetupDraft`, `toggleSelection`, `selectAll`, `deselectAll`, contagem e conversão para `MatchConfiguration`; preservar `roles` ao desmarcar/remarcar.
+- [X] T132 [US2] Atualizar `src/pages/match-setup/useMatchSetupViewModel.js` para inicializar o rascunho com todos os ativos, expor ações em massa, contador, bloqueios e iniciar a partida apenas com os selecionados.
+- [X] T133 [US2] Atualizar `src/features/match-configuration/ui/MatchSetupForm.jsx` e `MatchSetupForm.module.css` com seleção por checkbox, contador “X de Y”, botões “Selecionar todos”/“Desmarcar todos” e seletor de papel por participante.
+- [X] T134 [US2] Atualizar `tests/integration/matchSetup.test.jsx` cobrindo seleção padrão, ações em massa, contador, preservação de papel e bloqueios após alteração da seleção.
+
+**Checkpoint**: configuração exige menos esforço e mantém papéis durante ajustes de seleção.
+
+---
+
+## Phase 16: User Story 5 — Encerrar a partida automaticamente por vitória (Delta 2026-11-17) (Priority: P2)
+
+**Goal**: na vitória dos assassinos, aplicar o status final em massa antes de `FINISHED` e da persistência, sem ressuscitar mortos e sem alterar papéis.
+
+**Independent Test**: roteirizar uma vitória dos assassinos após a noite e outra após a votação; confirmar que todos os não assassinos terminam `DEAD`, assassinos vivos permanecem `ALIVE`, assassinos mortos permanecem `DEAD`, o `eliminatedAt` coletivo usa turno/fase da vitória e o documento persistido já contém esses status.
+
+### Tests for User Story 5
+
+- [X] T135 [P] [US5] Escrever `tests/unit/assassinsVictoryStatuses.test.js` cobrindo `applyAssassinsVictoryStatuses(session, "NIGHT" | "VOTE")`: não assassinos vivos → `DEAD` com `eliminatedAt = { turn: currentTurn, phase }`; não assassinos já mortos mantêm o momento original; assassinos vivos permanecem `ALIVE`; assassinos mortos permanecem `DEAD`; papéis inalterados; imutabilidade; `TypeError` para fase inválida.
+- [X] T136 [P] [US5] Escrever `tests/unit/matchEngine.assassinsVictory.test.js` cobrindo a chamada da atualização em massa em `resolveAssassinsPhase` (fase `NIGHT`) e `registerVote` (fase `VOTE`), exatamente uma vez antes de `status = FINISHED`, e o documento final com os status em massa.
+- [X] T137 [P] [US5] Atualizar `tests/unit/matchVictory.test.js` e `tests/integration/resultPersistence.test.jsx` para verificar que o resultado e o `PUT` final refletem os status em massa, que o ranking conta apenas assassinos vivos e que a gravação não aplica regra de domínio.
+
+### Implementation for User Story 5
+
+- [X] T138 [US5] Implementar `applyAssassinsVictoryStatuses(session, phase)` em `src/entities/match/model/victory.js` conforme as regras do `contracts/match-engine.md`, sem avaliar novamente a vitória; exportar por `src/entities/match/index.js`.
+- [X] T139 [US5] Integrar a atualização em massa em `src/entities/match/model/matchEngine.js`: chamar antes de finalizar em `resolveAssassinsPhase` e `registerVote` somente quando `evaluateVictory` retornar `ASSASSINS`, passando `"NIGHT"` ou `"VOTE"` e mantendo a persistência fora do motor.
+- [X] T140 [US5] Atualizar `src/widgets/match-summary/MatchSummary.jsx` e `src/pages/live-match/useLiveMatchViewModel.js` para derivar e exibir os eliminados em massa, o momento coletivo (turno/fase) e os status finais, sem recalcular regra de vitória na View.
+
+**Checkpoint**: a vitória dos assassinos encerra com o estado final correto e persistido.
+
+---
+
+## Phase 17: User Story 6 — Encerrar a partida manualmente em um ponto único (Delta 2026-11-17) (Priority: P2)
+
+**Goal**: manter um único `FinishMatchButton` persistente na tela da partida, acessível acima de sobreposições, com confirmação acima de tudo e sem duplicação nos pop-ups.
+
+**Independent Test**: iniciar uma partida, percorrer uma fase com sobreposição e outra com painel, confirmar que existe um único botão de encerrar, que ele permanece focável/acionável durante a sobreposição sem dispensá-la e que a confirmação aparece acima do overlay; cancelar e confirmar.
+
+### Tests for User Story 6
+
+- [X] T141 [P] [US6] Atualizar `tests/integration/manualClosure.test.jsx` para cobrir ponto único (um único botão na tela), ausência de duplicação em `SpecialOverlay`/painéis, foco e acionamento por teclado durante a sobreposição, confirmação acima do overlay, cancelamento e encerramento sem vencedor.
+- [X] T142 [P] [US6] Atualizar `tests/integration/accessibility.test.jsx` para cobrir o botão persistente fora do overlay (foco não bloqueado quando `aria-modal` não se aplica) e a ordem de foco do diálogo de confirmação.
+
+### Implementation for User Story 6
+
+- [X] T143 [US6] Remover o slot `footerAction` e o `stopPropagation` correspondente de `src/shared/ui/SpecialOverlay.jsx`; revisar `aria-modal` para não impedir o controle persistente e manter a dispensa por clique/Enter/Espaço e `prefers-reduced-motion`.
+- [X] T144 [US6] Remover qualquer uso de `footerAction` em `src/features/special-announcement/ui/SpecialAnnouncement.jsx`, mantendo as frases e a dispensa inalteradas.
+- [X] T145 [US6] Ajustar `src/features/match-closure/ui/FinishMatchButton.jsx` e `src/features/match-closure/model/closure.js` para o ponto único persistente, com confirmação, cancelamento, estado desabilitado após `FINISHED` e sem depender da sobreposição.
+- [X] T146 [US6] Atualizar `src/widgets/match-status-bar/MatchStatusBar.jsx` e CSS para hospedar o único `FinishMatchButton`, com camada/`z-index` acima das sobreposições, foco visível e layout sem sobreposição visual.
+- [X] T147 [US6] Atualizar `src/pages/live-match/LiveMatchPage.jsx` e `src/pages/live-match/useLiveMatchViewModel.js` para renderizar o encerramento apenas uma vez via `MatchStatusBar`, remover integrações antigas e garantir que a confirmação fique acima do overlay e dos painéis.
+
+**Checkpoint**: encerramento manual consistente, acessível e sem duplicação em qualquer fase.
+
+---
+
+## Phase 18: User Story 7 — Consultar e excluir partidas do histórico (Delta 2026-11-17) (Priority: P3)
+
+**Goal**: excluir definitivamente partidas finalizadas, com confirmação, removendo-as do histórico e recalculando o ranking, sem alterar participantes ou outras partidas.
+
+**Independent Test**: finalizar duas partidas, excluir uma do histórico com confirmação, confirmar que ela desaparece, que o ranking perde sua contribuição, que participantes e a outra partida permanecem e que `404` é tratado como já removida.
+
+### Tests for User Story 7
+
+- [X] T148 [P] [US7] Ampliar `tests/unit/matchRepository.test.js` cobrindo `deleteMatch(id)` via `DELETE /matches/:id`, sucesso `200`/`204`, `404` como remoção já concluída (ou `ApiError` tratado pelo chamador), validação de `id` e ausência de efeito em outras chamadas.
+- [X] T149 [P] [US7] Escrever `tests/unit/matchDeletion.test.js` cobrindo confirmação/cancelamento, bloqueio para status diferente de `FINISHED`, mensagem de sucesso/erro e decisão de fechar o detalhe após exclusão.
+- [X] T150 [US7] Ampliar `tests/unit/historyViewModel.test.jsx` cobrindo exclusão com confirmação, cancelamento, remoção da lista, fechamento do detalhe, estado vazio na última partida, `404` como já removida e recarga do histórico/ranking.
+
+### Implementation for User Story 7
+
+- [X] T151 [US7] Implementar `deleteMatch(id)` em `src/entities/match/api/matchRepository.js` usando `httpClient.delete` e exportar por `src/entities/match/index.js`; manter `listFinished`, `getById` e `saveFinishedMatch` inalterados.
+- [X] T152 [US7] Implementar `src/features/match-deletion/model/matchDeletion.js` e `src/features/match-deletion/ui/DeleteMatchDialog.jsx` (com CSS Module), reutilizando `src/shared/ui/ConfirmDialog.jsx`.
+- [X] T153 [US7] Atualizar `src/pages/history/useHistoryViewModel.js` com estado de exclusão pendente, confirmação, chamada a `deleteMatch`, tratamento de `404`, atualização da lista, fechamento do detalhe e mensagens em português.
+- [X] T154 [US7] Atualizar `src/features/match-history/ui/MatchHistoryList.jsx`, `MatchHistoryDetail.jsx` e `src/pages/history/HistoryPage.jsx` para expor “Excluir partida” apenas em partidas finalizadas, com confirmação e estado vazio após a última exclusão.
+- [X] T155 [US7] Escrever `tests/integration/historyDeletion.test.jsx` cobrindo confirmação, cancelamento, remoção do histórico, recálculo do ranking, participantes/outras partidas intactos, `404` e estado vazio.
+
+**Checkpoint**: histórico permite descartar partidas finalizadas sem afetar o cadastro.
+
+---
+
+## Phase 19: User Story 8 — Consultar o ranking de participantes (Delta 2026-11-17) (Priority: P3)
+
+**Goal**: incluir arquivados com partidas remanescentes, excluir arquivados sem partidas, contar apenas sobreviventes finais e garantir desempate determinístico.
+
+**Independent Test**: finalizar partidas com um participante arquivado que ainda tenha partida remanescente e outro arquivado sem partidas; confirmar que apenas o primeiro aparece, que participantes ativos com zero aparecem e que a ordem/desempate é estável após excluir uma partida.
+
+### Tests for User Story 8
+
+- [X] T156 [P] [US8] Ampliar `tests/unit/ranking.test.js` cobrindo candidatos = ativos ∪ arquivados referenciados por partidas `FINISHED` remanescentes, arquivados sem partidas omitidos, ativos com zero, status finais da vitória dos assassinos (apenas assassinos vivos contam), desempate por nome pt-BR e por `participantId`.
+- [X] T157 [US8] Ampliar `tests/integration/ranking.test.jsx` cobrindo participante arquivado no ranking/histórico, recálculo após exclusão de partida e reutilização de nome sem colisão de identidade.
+
+### Implementation for User Story 8
+
+- [X] T158 [US8] Atualizar `src/features/participant-ranking/model/ranking.js` para montar candidatos com ativos e arquivados referenciados por partidas remanescentes, contar apenas `ALIVE` finais e aplicar desempate final por `participantId` após nome.
+- [X] T159 [US8] Atualizar `src/pages/ranking/useRankingViewModel.js` para carregar todos os participantes (ativos e arquivados) e partidas finalizadas, derivando o ranking atualizado e tratando loading/erro/vazio.
+
+**Checkpoint**: ranking coerente com exclusões e com o desfecho real das partidas.
+
+---
+
+## Phase 20: Delta Polish & Validation (2026-11-17)
+
+**Purpose**: consolidar mensagens, limites arquiteturais, documentação e validação do delta.
+
+- [X] T160 [P] Atualizar `src/shared/config/labels.js` com mensagens pt-BR para bloqueio de exclusão em partida ativa, confirmação/sucesso de arquivamento, exclusão de partida, falha de `404` como já removida e status em massa na vitória; ampliar `tests/unit/labels.test.js`.
+- [X] T161 [P] Atualizar `tests/unit/architecture.test.js` para verificar que `participant-deletion` e `match-deletion` não importam outras features, que o motor não importa React/`fetch`/repositórios e que os slices usam as APIs públicas de `entities`.
+- [X] T162 [P] Atualizar `README.md` com exclusão por arquivamento, exclusão definitiva de partidas finalizadas, `deletedAt` no `db.json` e comportamento do ranking após exclusões.
+- [X] T163 Atualizar `checklists/requirements.md` e `checklists/validation.md` para refletir FR-075–110, A1–A5 e Q1–Q3, sem marcar como concluído o que ainda não foi validado.
+- [ ] T164 Executar o roteiro manual de `quickstart.md` (seções 4.1 a 4.12) e as verificações de contrato (seções 5.1 e 5.2), incluindo arquivamento, exclusão de partida, seleção em massa, ponto único e vitória dos assassinos; registrar divergências e corrigir sem ampliar o escopo.
+- [X] T165 Executar `npm test`, `npm run lint` e `npm run build` a partir de `package.json` na raiz do repositório, corrigindo todas as falhas e confirmando que nenhum teste unitário depende do JSON Server em execução.
+
+**Checkpoint**: delta validado ponta a ponta, com mensagens, limites FSD e documentação coerentes.
+
+---
+
+## Phase 21: Correção de UI — Sobreposições de tela cheia sem elementos concorrentes (Bugfix 2026-11-17)
+
+**Purpose**: corrigir o surgimento de outros elementos da tela enquanto um pop-up de anúncio cobre toda a viewport. Afeta diretamente US3 (etapas noturnas), US4 (amanhecer) e US6 (ponto único de encerramento), mas é uma correção transversal de empilhamento, recorte e composição.
+
+**Causas identificadas no código atual**:
+
+1. `src/shared/ui/SpecialOverlay.jsx` é renderizado dentro de `LiveMatchPage` → `.page` → `.screen` (`overflow: hidden`, `position: relative`, animação de opacidade e `#root` com `z-index: 1`), dependendo do contexto de empilhamento dos ancestrais em vez de ser isolado no `body`.
+2. `src/widgets/match-status-bar/MatchStatusBar.module.css` aplica `z-index: calc(var(--z-dialog-elevated, 1200) - 1)` = 1199 ao contêiner inteiro da barra, então Turno/Fase/Vivos/Mortos/Próxima etapa aparecem acima da sobreposição (z-index 1100), embora somente o `FinishMatchButton` deva ficar acima.
+3. `SpecialOverlay.module.css` usa fundo com alfa (`rgba(4, 4, 8, 0.88)`) e `backdrop-filter`, permitindo que o conteúdo de trás apareça por transparência/fallback de blur.
+4. `LiveMatchPage` continua renderizando título, `Alert` de erro, `MatchStatusBar` completo, painéis e resumo enquanto `isAnnouncement` é verdadeiro, sem esconder/`inert`izar o conteúdo de fundo nem bloquear o scroll do `body`.
+5. Não há tokens explícitos para a ordem das camadas (conteúdo < anúncio < controle persistente < confirmação), o que permite regressões de `z-index` isoladas.
+
+**Independent Test**: iniciar uma partida e, em cada fase de anúncio, confirmar que a sobreposição cobre toda a viewport com fundo opaco, que cabeçalho/navegação/rodapé, barra de estatísticas, painéis da fase e resumo não aparecem por cima nem por transparência, que existe exatamente um botão "Encerrar partida" acima do anúncio, que ele permanece focável/acionável sem dispensar o pop-up, que a confirmação aparece acima de tudo e que, ao dispensar o anúncio, o conteúdo da fase reaparece normalmente.
+
+### Tests for Phase 21
+
+- [X] T166 [P] Ampliar `tests/integration/accessibility.test.jsx` para verificar que `SpecialOverlay` é renderizado como filho direto de `document.body` (portal), que usa `data-layer="announcement"`, que apenas o controle persistente de encerramento (`data-layer="persistent-closure"`) permanece focável fora da sobreposição e que o diálogo de confirmação (`data-layer="confirm"`) fica acima de ambos sem dispensar o anúncio.
+- [X] T167 [P] Criar `tests/integration/fullScreenOverlay.test.jsx` cobrindo cada fase de anúncio (`TURN_START`, `ASSASSINS_ANNOUNCEMENT`, `DETECTIVES_ANNOUNCEMENT`, `DAWN_ANNOUNCEMENT`) em `LiveMatchPage`: sobreposição cobre a viewport; textos "Turno", "Fase", "Vivos", "Mortos" e "Próxima etapa" da barra não aparecem simultaneamente; `AssassinsPhasePanel`, `DetectivesPhasePanel`, `DawnResultPanel`, `VotingPanel`, `MatchSummary` e `Alert` não aparecem junto do anúncio; existe exatamente um botão "Encerrar partida"; após dispensar, o conteúdo da fase reaparece.
+- [X] T168 [P] Ampliar `tests/integration/manualClosure.test.jsx` para garantir que, durante o anúncio, o botão de encerramento permanece no mesmo ponto/camada (`data-layer="persistent-closure"`), que o overlay não intercepta seu clique/foco, que o diálogo de confirmação fica acima sem dispensar o anúncio e que cancelar restaura o foco ao botão persistente.
+- [X] T169 [P] Criar `tests/unit/useBodyScrollLock.test.jsx` cobrindo bloqueio de `document.body.style.overflow` ao ativar, restauração do valor anterior ao desativar/desmontar, suporte a múltiplos consumidores e ausência de erro quando `document` não existe.
+
+### Implementation for Phase 21
+
+- [X] T170 [P] Atualizar `src/app/styles/tokens.css` definindo a ordem explícita de camadas `--z-content: 0`, `--z-announcement: 1100`, `--z-persistent-closure: 1150` e `--z-confirm-dialog: 1200` (substituindo `--z-overlay`, `--z-dialog` e `--z-dialog-elevated` nos usos internos), com comentário curto da ordem conteúdo < anúncio < encerramento < confirmação.
+- [X] T171 Atualizar `src/shared/ui/SpecialOverlay.jsx` para renderizar a sobreposição via `createPortal` em `document.body`, com guarda `typeof document !== 'undefined'`, `data-layer="announcement"`, foco inicial no overlay e restauração do foco anterior ao desmontar; manter `role="dialog"`, `aria-label` e dispensa por clique/Enter/Espaço, sem `aria-modal` e sem capturar o clique do botão persistente.
+- [X] T172 Atualizar `src/shared/ui/SpecialOverlay.module.css` para usar fundo totalmente opaco (sem alfa que revele o conteúdo de trás), cobrir a viewport com `position: fixed; inset: 0; width: 100vw; height: 100dvh`, `z-index: var(--z-announcement)` e sem depender de `overflow`, `transform`, `filter` ou animação de ancestrais; manter o suporte a `prefers-reduced-motion`.
+- [X] T173 Implementar `src/shared/lib/useBodyScrollLock.js` com bloqueio/restauração de `document.body.style.overflow` e consumi-lo em `src/shared/ui/SpecialOverlay.jsx` apenas enquanto a sobreposição estiver montada, liberando o scroll ao dispensar/desmontar.
+- [X] T174 Atualizar `src/widgets/match-status-bar/MatchStatusBar.jsx` e `src/widgets/match-status-bar/MatchStatusBar.module.css` para remover o `z-index` elevado do contêiner inteiro; isolar o `FinishMatchButton` em um wrapper `data-layer="persistent-closure"` com `z-index: var(--z-persistent-closure)`, manter `dl` de estatísticas na camada de conteúdo e aceitar `overlayActive` (ou `showStats={false}`) para ocultar as estatísticas durante anúncios sem desmontar o botão.
+- [X] T175 Atualizar `src/pages/live-match/LiveMatchPage.jsx` para que, quando `viewState.announcement` existir, a seção marque `data-overlay-active="true"` e renderize apenas a sobreposição e o ponto único de encerramento; não renderizar título, `Alert`, painéis de fase, `MatchSummary` nem demais elementos de fundo durante o anúncio, mantendo exatamente um `FinishMatchButton`.
+- [X] T176 Atualizar `src/pages/live-match/LiveMatchPage.module.css` com o estado `[data-overlay-active='true']` para esconder conteúdo não essencial, manter o wrapper do encerramento visível na camada persistente e neutralizar qualquer `overflow`/animação de `.screen` que possa recortar ou rebaixar a sobreposição.
+- [X] T177 Atualizar `src/features/match-closure/ui/FinishMatchButton.jsx` e `src/shared/ui/ConfirmDialog.jsx` para expor `data-layer="persistent-closure"` e `data-layer="confirm"` nos respectivos contêineres, garantindo que a confirmação continue em `createPortal` com `z-index: var(--z-confirm-dialog)` acima do anúncio e do botão persistente.
+- [ ] T178 Executar `npm test`, `npm run lint` e `npm run build` a partir da raiz, corrigir regressões e validar manualmente no `quickstart.md` as fases de anúncio, a dispensa por clique/teclado, o scroll bloqueado, o botão persistente e a confirmação acima da sobreposição. (Automação concluída: 285 testes, lint e build OK; falta apenas a conferência visual manual no navegador.)
+
+**Checkpoint**: em qualquer anúncio de tela cheia, nada além da sobreposição e do ponto único de encerramento fica visível/clicável; a confirmação permanece acima de tudo e o conteúdo da fase volta ao normal após a dispensa.
+
+### Dependencies & Execution Order — Phase 21
+
+- T170 (tokens) pode começar imediatamente e é pré-requisito de T172, T174 e T177.
+- T166–T169 (testes) podem ser escritos em paralelo antes da implementação e devem falhar no estado atual.
+- T171–T173 (overlay + scroll lock) dependem de T170; T173 depende de T171.
+- T174 depende de T170 e T177; T175 depende de T174; T176 depende de T175.
+- T178 depende de todas as tarefas anteriores da fase.
+
+### Parallel Example: Phase 21
+
+```bash
+# Testes de regressão em paralelo (arquivos diferentes):
+Task: "Ampliar tests/integration/accessibility.test.jsx (T166)"
+Task: "Criar tests/integration/fullScreenOverlay.test.jsx (T167)"
+Task: "Ampliar tests/integration/manualClosure.test.jsx (T168)"
+Task: "Criar tests/unit/useBodyScrollLock.test.jsx (T169)"
+
+# Implementação paralela após T170:
+Task: "Isolar SpecialOverlay em portal e CSS opaco (T171, T172)"
+Task: "Isolar FinishMatchButton na camada persistente (T174, T177)"
+```
+
+### Implementation Strategy — Phase 21
+
+1. Escrever T166–T169 e confirmar as falhas atuais (barra de estatísticas e conteúdo de fundo visíveis, overlay sem portal, scroll não bloqueado).
+2. Aplicar T170–T173 para isolar e opacizar a sobreposição.
+3. Aplicar T174–T177 para restringir a camada persistente ao único botão de encerramento e manter a confirmação acima.
+4. Validar com T178 e no roteiro manual; só então marcar o checkpoint da fase.
+

@@ -1,11 +1,13 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
+  EliminationPhase,
   getAliveParticipants,
   getDeadParticipants,
   MatchPhase,
   MatchStatus,
+  MatchWinner,
 } from '@/entities/match'
-import { getGameRuleErrorMessage } from '@/shared/config/labels'
+import { getGameRuleErrorMessage, uiMessages } from '@/shared/config/labels'
 import { formatDateTimePtBr } from '@/shared/lib/date'
 import { ApiError, GameRuleError } from '@/shared/lib/errors'
 import { useAsyncData } from '@/shared/lib/useAsyncData'
@@ -31,6 +33,57 @@ const NEXT_STEP_BY_PHASE = Object.freeze({
   [MatchPhase.VOTING]: 'Próximo turno',
   [MatchPhase.FINISHED]: 'Partida encerrada',
 })
+
+const VICTORY_PHASE_LABELS = Object.freeze({
+  [EliminationPhase.NIGHT]: 'Noite',
+  [EliminationPhase.VOTE]: 'Votação',
+})
+
+/**
+ * Deriva o momento coletivo da vitória dos assassinos a partir dos status finais.
+ * @param {object} session
+ * @param {(participantId: string) => string} resolveName
+ */
+function getBulkElimination(session, resolveName) {
+  if (session.match.winner !== MatchWinner.ASSASSINS) {
+    return null
+  }
+
+  const phase =
+    session.voteResult != null
+      ? EliminationPhase.VOTE
+      : EliminationPhase.NIGHT
+  const primaryEliminatedIds =
+    phase === EliminationPhase.VOTE
+      ? session.voteResult?.type === 'ELIMINATION'
+        ? [session.voteResult.participantId]
+        : []
+      : session.nightResult?.eliminatedParticipantIds ?? []
+  const turn = session.currentTurn
+
+  const participants = session.match.participants
+    .filter(
+      (participant) =>
+        participant.role !== 'ASSASSIN' &&
+        participant.status === 'DEAD' &&
+        participant.eliminatedAt?.turn === turn &&
+        participant.eliminatedAt?.phase === phase &&
+        !primaryEliminatedIds.includes(participant.participantId),
+    )
+    .map((participant) => ({
+      participantId: participant.participantId,
+      name: resolveName(participant.participantId),
+    }))
+
+  return {
+    turn,
+    phase,
+    phaseLabel: VICTORY_PHASE_LABELS[phase],
+    label: `Turno ${turn} — ${VICTORY_PHASE_LABELS[phase]}`,
+    description: uiMessages.assassinsVictoryBulkStatus,
+    participants,
+  }
+}
 
 function toMessage(error) {
   if (error instanceof GameRuleError) {
@@ -106,6 +159,7 @@ export function useLiveMatchViewModel({ session, participantRepository, actions 
         role: participant.role,
         eliminatedAt: participant.eliminatedAt,
       })),
+      bulkElimination: getBulkElimination(session, resolveName),
     }
   }, [participantNames, session])
 

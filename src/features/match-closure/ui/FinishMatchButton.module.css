@@ -1,0 +1,11 @@
+.inline {
+  display: inline-flex;
+}
+
+.floating {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: var(--z-persistent-closure, 1150);
+  display: inline-flex;
+}

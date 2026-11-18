@@ -2,6 +2,7 @@
 
 **Feature**: `001-cidade-dorme-game`
 **Data**: 2026-11-14
+**Atualizado**: 2026-11-17
 **Referências**: [spec.md](./spec.md), [plan.md](./plan.md), [research.md](./research.md)
 
 ## 1. Convenções
@@ -13,6 +14,7 @@
 - Campos opcionais são explicitamente `null` quando não se aplicam, para manter o documento previsível.
 - O domínio usa nomes em inglês (`Participant`, `Match`, `MatchParticipant`, `PlayerRole`); a interface usa rótulos em português.
 - Nenhum dado derivável é persistido, exceto o resultado declarado da partida (`winner`/`closureReason`), que é um fato histórico.
+- Participantes nunca são removidos fisicamente; a exclusão é representada por `deletedAt`. "Cadastro ativo" significa `deletedAt == null`.
 
 ## 2. Enums
 
@@ -84,19 +86,30 @@ Representa uma pessoa cadastrada e reutilizável em partidas.
 | Campo | Tipo | Obrigatório | Regras |
 |---|---|---|---|
 | `id` | string (UUID) | sim | Único, imutável. |
-| `name` | string | sim | Não vazio após `trim`; único sem diferenciar maiúsculas/minúsculas; exibido com a grafia informada. |
+| `name` | string | sim | Não vazio após `trim`; único sem diferenciar maiúsculas/minúsculas **no cadastro ativo**; exibido com a grafia informada. |
+| `deletedAt` | string ISO \| null | sim | `null` = ativo; não nulo = arquivado. Ausente é tratado como `null` por compatibilidade. |
 
 Regras:
 
-- Não há exclusão no escopo.
+- Excluir significa arquivar: gravar `deletedAt` e manter o documento. Nunca há `DELETE` físico de participante.
+- O participante arquivado não aparece no cadastro ativo, não pode ser editado e não pode ser selecionado em novas partidas.
+- O nome preservado é o último nome cadastrado antes do arquivamento; ele continua sendo resolvido no histórico e no ranking.
+- A unicidade é validada apenas entre ativos; um novo participante pode reutilizar o nome de um arquivado, e os registros permanecem distintos por `id`.
 - A edição altera apenas `name` e preserva `id`.
-- A identidade é preservada no histórico; o nome exibido é sempre o atual.
+- A identidade é preservada no histórico; para ativos, o nome exibido é sempre o atual.
 - Não há data de criação nem outros metadados, pois não são exigidos.
+- O arquivamento é bloqueado enquanto o participante está na partida em andamento.
 
-Exemplo:
+Exemplo ativo:
 
 ```json
-{ "id": "2f8c...", "name": "Ana" }
+{ "id": "2f8c...", "name": "Ana", "deletedAt": null }
+```
+
+Exemplo arquivado:
+
+```json
+{ "id": "2f8c...", "name": "Ana", "deletedAt": "2026-11-17T21:00:00.000Z" }
 ```
 
 ### 3.2 Match
@@ -124,6 +137,8 @@ Invariantes:
   - `VICTORY` → `winner` é `INNOCENTS` ou `ASSASSINS`;
   - `MANUAL` → `winner` é `null`.
 - `turnCount` não diminui.
+- Na vitória dos assassinos, o documento final contém todos os não assassinos com `status = DEAD` (exceto os que já estavam mortos, que mantêm `eliminatedAt`) e os assassinos com o status que tinham ao final, sem ressurreição.
+- Partidas `FINISHED` podem ser excluídas definitivamente do histórico. Partidas `IN_PROGRESS` nunca são persistidas e não podem ser excluídas.
 
 ### 3.3 MatchParticipant
 
@@ -150,6 +165,7 @@ Invariantes:
 - Uma eliminação é definitiva; não há ressurreição.
 - Um participante não pode ser eliminado duas vezes.
 - O papel não muda durante a partida.
+- Na vitória dos assassinos, os não assassinos vivos passam a `DEAD` uma única vez, com `eliminatedAt` do turno e da fase da vitória; não assassinos já mortos mantêm o momento original. Assassinos mortos permanecem `DEAD` e assassinos vivos permanecem `ALIVE`.
 
 Exemplo:
 
@@ -177,16 +193,18 @@ Match 1 ──── N MatchParticipant (embutidos no documento persistido)
 - Uma partida tem vários participantes.
 - O vínculo é representado por `MatchParticipant`.
 - Não há relação entre partidas.
+- Um participante arquivado mantém seus vínculos históricos; o nome resolvido é o último preservado.
 - O histórico usa o vínculo para reconstruir papéis e status final.
-- O ranking usa o vínculo para contar sobrevivências.
+- O ranking usa o vínculo para contar sobrevivências, incluindo arquivados com partidas remanescentes.
+- A exclusão de uma partida remove apenas o documento de `Match`; não altera `Participant` nem outras partidas.
 
 ## 5. Separação entre domínio, sessão e persistência
 
 | Dado | Domínio | Sessão em memória | Persistido | Observação |
 |---|---|---|---|---|
-| Participantes cadastrados | sim | carregados | sim | Coleção `participants`. |
-| Partida e seus participantes | sim | sim | somente ao encerrar | Documento `matches`. |
-| Papéis e status final | sim | sim | sim | Embutidos na partida. |
+| Participantes cadastrados | sim | carregados | sim | Coleção `participants`; inclui ativos e arquivados (`deletedAt`). |
+| Partida e seus participantes | sim | sim | somente ao encerrar | Documento `matches`; pode ser excluído após finalizado. |
+| Papéis e status final | sim | sim | sim | Embutidos na partida; inclui status em massa da vitória dos assassinos. |
 | Turno atual | sim | sim | derivado | `turnCount + 1` durante a partida. |
 | Escolhas de assassinos | não | sim | não | Restrição explícita. |
 | Investigações e papel revelado | não | sim | não | Apenas para o narrador durante a partida. |
@@ -276,6 +294,22 @@ senão:
 - A verificação ocorre após `resolveAssassinsPhase` e após `registerVote`.
 - Não ocorre na criação da partida nem após a fase dos detetives, pois esta não altera vivos.
 - Quando há vitória, o fluxo restante é interrompido.
+- Quando o vencedor é `ASSASSINS`, aplicar `applyAssassinsVictoryStatuses(session, phase)` antes de marcar `FINISHED` e persistir:
+
+```text
+para cada MatchParticipant:
+    se role != ASSASSIN e status == ALIVE:
+        status = DEAD
+        eliminatedAt = { turn: currentTurn, phase: "NIGHT" | "VOTE" }
+    senão se role != ASSASSIN e status == DEAD:
+        mantém eliminatedAt
+    senão se role == ASSASSIN:
+        mantém status (ALIVE continua ALIVE; DEAD continua DEAD)
+```
+
+- `phase` é `NIGHT` quando a vitória ocorre após `resolveAssassinsPhase` e `VOTE` quando ocorre após `registerVote`.
+- Nenhum `role` muda. A atualização é aplicada uma única vez e o resultado persistido já contém os status finais.
+- O ranking usa esses status finais: apenas assassinos que permaneceram vivos contam sobrevivência.
 
 ## 8. Regras de configuração da partida
 
@@ -291,6 +325,22 @@ senão:
 
 A configuração é uma lista de `{ participantId, role }` após atribuição manual. O papel `INNOCENT` é o padrão para todos os selecionados que não receberam papel especial.
 
+### 8.1 Rascunho de configuração (não persistido)
+
+```text
+MatchSetupDraft {
+  selectedIds: string[],                    // inicia com todos os participantes ativos
+  roles: Record<participantId, PlayerRole>  // preserva o papel ao desmarcar/remarcar (A4)
+}
+```
+
+- `selectAll` seleciona todos os participantes ativos; `deselectAll` remove todos de `selectedIds`, sem apagar `roles`.
+- A seleção individual alterna apenas a presença em `selectedIds`.
+- `roles` guarda o papel por identidade; a ausência de papel significa `INNOCENT` quando selecionado.
+- A contagem de selecionados e a validação de mínimo são recalculadas após qualquer alteração.
+- Apenas os selecionados são convertidos em `MatchConfiguration` e enviados ao motor.
+- Participantes arquivados nunca entram no rascunho de uma nova partida.
+
 ## 9. Regras de ações, eliminações e votação
 
 - **Assassino**: ator deve estar vivo, ter `role = ASSASSIN` e estar na partida. Alvo deve estar vivo, ser diferente do ator e estar na partida. Alvo pode ser outro assassino. Alvo `null` é permitido.
@@ -299,6 +349,7 @@ A configuração é uma lista de `{ participantId, role }` após atribuição ma
 - **Simultaneidade**: todas as escolhas registradas são aplicadas juntas. A escolha de um assassino que morre na mesma resolução permanece válida (D5).
 - **Votação**: aceita `{ type: "ELIMINATION", participantId }` com alvo vivo, ou `{ type: "TIE" }`. Não aceita participante morto, alvo ausente ou segundo resultado no mesmo turno.
 - **Empate**: nenhum status muda; o turno é encerrado normalmente (ou a vitória é avaliada, sem mudança).
+- **Vitória dos assassinos**: após a ação que gera a paridade/superioridade, todos os não assassinos vivos passam a `DEAD` com `eliminatedAt` do turno e fase atuais. Os já mortos não são alterados; assassinos vivos permanecem `ALIVE` e assassinos mortos permanecem `DEAD`.
 - **Limpeza**: ao iniciar um novo turno, todas as ações e resultados temporários são descartados.
 
 ## 10. Dados derivados
@@ -320,26 +371,40 @@ Para cada partida `FINISHED`:
 ### 10.3 Ranking
 
 ```text
-para cada Participant cadastrado:
+candidatos = participantes ativos (deletedAt == null)
+           ∪ participantes arquivados referenciados por ao menos uma partida FINISHED remanescente
+
+para cada candidato:
     survivalCount = 0
 para cada Match com status FINISHED:
     para cada MatchParticipant com status ALIVE:
-        survivalCount[participantId] += 1
-ordenar por survivalCount desc, depois name asc (pt-BR, sensitivity base)
+        se participantId pertence aos candidatos:
+            survivalCount[participantId] += 1
+ordenar por survivalCount desc, depois name asc (pt-BR, sensitivity base),
+depois participantId asc (desempate determinístico)
 ```
 
 - Partidas em andamento são ignoradas.
-- Participantes com zero sobrevivências aparecem.
-- A edição do nome reflete no ranking.
-- O ranking não é persistido.
+- Participantes ativos com zero sobrevivências aparecem.
+- Participantes arquivados sem partidas finalizadas remanescentes não aparecem.
+- A edição do nome de um ativo reflete no ranking; arquivados mantêm o último nome.
+- Nomes iguais (reutilização após arquivamento) permanecem distintos por `id`.
+- Na vitória dos assassinos, a contagem usa os status finais: apenas assassinos vivos contam.
+- O ranking não é persistido e é recalculado após exclusão de participante, exclusão de partida e vitória com status em massa.
+
+### 10.4 Histórico após exclusões
+
+- Uma partida excluída deixa de aparecer no histórico e de contribuir no ranking.
+- Um participante arquivado continua aparecendo no histórico das partidas remanescentes com o último nome preservado.
+- Se a última partida de um participante arquivado for excluída, ele deixa de aparecer no ranking, mas o registro arquivado permanece em `participants`.
 
 ## 11. Mapeamento para `db.json`
 
 ```json
 {
   "participants": [
-    { "id": "uuid-ana", "name": "Ana" },
-    { "id": "uuid-bruno", "name": "Bruno" }
+    { "id": "uuid-ana", "name": "Ana", "deletedAt": null },
+    { "id": "uuid-bruno", "name": "Bruno", "deletedAt": null }
   ],
   "matches": [
     {
@@ -372,9 +437,11 @@ ordenar por survivalCount desc, depois name asc (pt-BR, sensitivity base)
 ```
 
 - `matches` contém apenas partidas finalizadas na estratégia atual.
-- `participants` é a única fonte de nomes.
+- `participants` é a única fonte de nomes, inclusive para arquivados.
 - Não há coleção de turnos, ações, investigações, votos ou ranking.
 - Um `PUT /matches/:id` substitui o documento inteiro; a operação é idempotente.
+- Um `DELETE /matches/:id` remove a partida finalizada do histórico; não há cascata.
+- Um `PATCH /participants/:id` com `deletedAt` arquiva o participante; não há remoção física.
 - A validação de formato nas respostas é mínima; erros de leitura viram `ApiError`.
 
 ## 12. Invariantes globais
@@ -384,16 +451,19 @@ ordenar por survivalCount desc, depois name asc (pt-BR, sensitivity base)
 3. Pelo menos um assassino por partida.
 4. Pelo menos cinco participantes por partida.
 5. Todos iniciam vivos.
-6. `DEAD` é terminal e exige `eliminatedAt`.
+6. `DEAD` é terminal e exige `eliminatedAt`; a única forma de virar `DEAD` sem ação individual é a eliminação em massa na vitória dos assassinos.
 7. Nenhum morto age, é alvo de ação noturna ou é eliminado na votação.
 8. Nenhum participante age contra si mesmo.
 9. Apenas um resultado de votação por turno.
 10. Apenas uma partida em andamento por sessão.
 11. Uma partida finalizada não aceita novos comandos.
-12. Apenas partidas finalizadas entram no histórico e no ranking.
+12. Apenas partidas finalizadas entram no histórico e no ranking; partidas excluídas deixam de contribuir.
 13. O vencedor é coerente com `closureReason`; manual não tem vencedor.
-14. O nome de um participante é único no cadastro.
+14. O nome de um participante é único no cadastro ativo; arquivados mantêm o último nome e podem ter homônimos ativos, distinguidos por `id`.
 15. O turno em andamento não entra em `turnCount` no encerramento manual.
+16. Participantes nunca são removidos fisicamente; `deletedAt` marca o arquivamento.
+17. Na vitória dos assassinos, mortos não ressuscitam, papéis não mudam e a atualização em massa ocorre antes da persistência.
+18. A exclusão de partida afeta apenas o documento removido; não altera participantes nem outras partidas.
 
 ## 13. Decisões relacionadas
 
@@ -404,3 +474,9 @@ ordenar por survivalCount desc, depois name asc (pt-BR, sensitivity base)
 - **D5**: ação de assassino morto na mesma noite ainda é aplicada (aprovado).
 - **D7**: não bloquear configuração com todos os assassinos (aprovado na spec).
 - **D8**: turno manual não conta; edição reflete no histórico; ranking inclui zeros (aprovado na spec).
+- **D10**: exclusão de participante por arquivamento com `deletedAt`, sem remoção física (aprovado em Q1).
+- **D11**: exclusão definitiva de partidas finalizadas com `DELETE` (aprovado em A3/A5).
+- **D12**: atualização em massa de status na vitória dos assassinos antes da persistência (aprovado em Q2/Q3).
+- **D13**: encerramento manual em ponto único persistente, fora dos pop-ups (aprovado em A1).
+- **D14**: configuração inicia com todos os ativos selecionados, ações em massa e memória de papéis (aprovado em A4).
+- **D15**: repositórios separam `listActive()` e `listAll()` (aprovado no plano).

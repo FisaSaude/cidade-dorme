@@ -8,6 +8,20 @@ function createMemoryRepository(initialParticipants = []) {
 
   return {
     list: vi.fn(async () => participants.map((participant) => ({ ...participant }))),
+    listActive: vi.fn(async () =>
+      participants
+        .filter((participant) => !participant.deletedAt)
+        .map((participant) => ({ ...participant })),
+    ),
+    listAll: vi.fn(async () =>
+      participants.map((participant) => ({ ...participant })),
+    ),
+    archive: vi.fn(async (id, deletedAt) => {
+      participants = participants.map((participant) =>
+        participant.id === id ? { ...participant, deletedAt } : participant,
+      )
+      return { ...participants.find((participant) => participant.id === id) }
+    }),
     create: vi.fn(async ({ name }) => {
       counter += 1
       const created = { id: `p-new-${counter}`, name }
@@ -24,11 +38,13 @@ function createMemoryRepository(initialParticipants = []) {
   }
 }
 
-async function renderViewModel(repository) {
-  const hook = renderHook(() => useParticipantsViewModel(repository))
+async function renderViewModel(repository, options) {
+  const hook = renderHook(() => useParticipantsViewModel(repository, options))
   await waitFor(() => expect(hook.result.current.viewState.loading).toBe(false))
   return hook
 }
+
+const NOW = '2026-11-17T21:00:00.000Z'
 
 describe('useParticipantsViewModel', () => {
   it('carrega e ordena os participantes alfabeticamente', async () => {
@@ -39,7 +55,7 @@ describe('useParticipantsViewModel', () => {
 
     const { result } = await renderViewModel(repository)
 
-    expect(repository.list).toHaveBeenCalledTimes(1)
+    expect(repository.listActive).toHaveBeenCalledTimes(1)
     expect(result.current.viewState.participants.map((item) => item.name)).toEqual([
       'Ana',
       'Bruno',
@@ -154,6 +170,83 @@ describe('useParticipantsViewModel', () => {
 
     expect(result.current.viewState.formError).toBe('')
     expect(repository.update).toHaveBeenCalledWith('p-1', { name: 'Ana' })
+  })
+
+  it('carrega apenas ativos quando o repositório oferece listActive', async () => {
+    const repository = createMemoryRepository([
+      { id: 'p-1', name: 'Ana', deletedAt: null },
+      { id: 'p-2', name: 'Bruno', deletedAt: NOW },
+    ])
+
+    const { result } = await renderViewModel(repository)
+
+    expect(repository.listActive).toHaveBeenCalledTimes(1)
+    expect(repository.list).not.toHaveBeenCalled()
+    expect(result.current.viewState.participants.map((item) => item.name)).toEqual([
+      'Ana',
+    ])
+  })
+
+  it('arquiva o participante confirmado e expõe estado de exclusão', async () => {
+    const repository = createMemoryRepository([{ id: 'p-1', name: 'Ana' }])
+    const { result } = await renderViewModel(repository, { now: () => NOW })
+
+    act(() => {
+      result.current.actions.requestDelete({ id: 'p-1', name: 'Ana' })
+    })
+
+    expect(result.current.viewState.deletion.open).toBe(true)
+    expect(result.current.viewState.deletion.participant.name).toBe('Ana')
+
+    await act(async () => {
+      await result.current.actions.confirmDelete()
+    })
+
+    expect(repository.archive).toHaveBeenCalledWith('p-1', NOW)
+    expect(result.current.viewState.deletion.open).toBe(false)
+    expect(result.current.viewState.notice).toBe(
+      'Participante excluído do cadastro ativo.',
+    )
+    await waitFor(() =>
+      expect(result.current.viewState.participants).toHaveLength(0),
+    )
+  })
+
+  it('bloqueia exclusão de participante da partida ativa', async () => {
+    const repository = createMemoryRepository([{ id: 'p-1', name: 'Ana' }])
+    const { result } = await renderViewModel(repository, {
+      activeParticipantIds: ['p-1'],
+    })
+
+    act(() => {
+      result.current.actions.requestDelete({ id: 'p-1', name: 'Ana' })
+    })
+
+    expect(result.current.viewState.deletion.blockedMessage).toBe(
+      'Não é possível excluir um participante da partida em andamento.',
+    )
+
+    await act(async () => {
+      await result.current.actions.confirmDelete()
+    })
+
+    expect(repository.archive).not.toHaveBeenCalled()
+    expect(result.current.viewState.deletion.error).toBe(
+      'Não é possível excluir um participante da partida em andamento.',
+    )
+  })
+
+  it('cancela a confirmação sem arquivar', async () => {
+    const repository = createMemoryRepository([{ id: 'p-1', name: 'Ana' }])
+    const { result } = await renderViewModel(repository)
+
+    act(() => {
+      result.current.actions.requestDelete({ id: 'p-1', name: 'Ana' })
+      result.current.actions.cancelDelete()
+    })
+
+    expect(result.current.viewState.deletion.open).toBe(false)
+    expect(repository.archive).not.toHaveBeenCalled()
   })
 
   it('traduz erros da API para mensagem segura', async () => {

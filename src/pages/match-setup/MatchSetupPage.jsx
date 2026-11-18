@@ -62,6 +62,8 @@ export function MatchSetupPage({ participantRepository, startMatch, onStarted })
         disabled={false}
         onToggle={actions.toggleParticipant}
         onChangeRole={actions.setParticipantRole}
+        onSelectAll={actions.selectAll}
+        onDeselectAll={actions.deselectAll}
         onSubmit={actions.submit}
       />
     </div>

@@ -5,10 +5,17 @@ import { useMatchSetupViewModel } from '@/pages/match-setup/useMatchSetupViewMod
 import { GameRuleError } from '@/shared/lib/errors'
 
 function createParticipantRepository(participants = []) {
-  const snapshot = participants.map((participant) => ({ ...participant }))
+  const snapshot = participants.map((participant) => ({
+    deletedAt: null,
+    ...participant,
+  }))
+  const active = snapshot.filter((participant) => !participant.deletedAt)
 
   return {
     list: vi.fn(async () => snapshot.map((participant) => ({ ...participant }))),
+    listActive: vi.fn(async () =>
+      active.map((participant) => ({ ...participant })),
+    ),
   }
 }
 
@@ -31,15 +38,27 @@ async function renderViewModel(overrides = {}) {
   )
 
   await waitFor(() => expect(hook.result.current.viewState.loading).toBe(false))
+  await waitFor(() =>
+    expect(hook.result.current.viewState.rows.length).toBeGreaterThanOrEqual(0),
+  )
 
   return { ...hook, startMatch, onStarted, participantRepository }
 }
 
 describe('useMatchSetupViewModel', () => {
-  it('carrega participantes como linhas não selecionadas', async () => {
-    const { result } = await renderViewModel()
+  it('carrega apenas ativos e os seleciona por padrão', async () => {
+    const participantRepository = createParticipantRepository([
+      ...PARTICIPANTS,
+      { id: 'p-7', name: 'Gabi', deletedAt: '2026-11-17T21:00:00.000Z' },
+    ])
 
-    expect(result.current.viewState.rows).toHaveLength(6)
+    const { result } = await renderViewModel({ participantRepository })
+
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
+
+    expect(participantRepository.listActive).toHaveBeenCalledTimes(1)
     expect(result.current.viewState.rows.map((row) => row.name)).toEqual([
       'Ana',
       'Bruno',
@@ -48,88 +67,83 @@ describe('useMatchSetupViewModel', () => {
       'Elisa',
       'Fabio',
     ])
-    expect(result.current.viewState.rows.every((row) => !row.selected)).toBe(true)
-    expect(result.current.viewState.summary).toEqual({
-      selectedCount: 0,
-      assassinCount: 0,
-      detectiveCount: 0,
-      innocentCount: 0,
+    expect(result.current.viewState.rows.every((row) => row.selected)).toBe(true)
+    expect(result.current.viewState.counts).toEqual({
+      selectedCount: 6,
+      totalCount: 6,
     })
   })
 
-  it('seleciona e desseleciona participantes mantendo uma linha por pessoa', async () => {
+  it('desmarca e seleciona todos mantendo os papéis', async () => {
     const { result } = await renderViewModel()
-
-    act(() => {
-      result.current.actions.toggleParticipant('p-1')
-      result.current.actions.toggleParticipant('p-2')
-    })
-
-    expect(result.current.viewState.summary.selectedCount).toBe(2)
-    expect(result.current.viewState.rows[0].selected).toBe(true)
-    expect(result.current.viewState.rows[0].role).toBe(PlayerRole.INNOCENT)
-
-    act(() => {
-      result.current.actions.toggleParticipant('p-1')
-    })
-
-    expect(result.current.viewState.summary.selectedCount).toBe(1)
-    expect(result.current.viewState.rows[0].selected).toBe(false)
-  })
-
-  it('atribui um único papel por participante e atualiza as contagens', async () => {
-    const { result } = await renderViewModel()
-
-    act(() => {
-      ;['p-1', 'p-2', 'p-3', 'p-4', 'p-5'].forEach((participantId) =>
-        result.current.actions.toggleParticipant(participantId),
-      )
-    })
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
 
     act(() => {
       result.current.actions.setParticipantRole('p-1', PlayerRole.ASSASSIN)
-      result.current.actions.setParticipantRole('p-2', PlayerRole.DETECTIVE)
+      result.current.actions.deselectAll()
     })
 
-    expect(result.current.viewState.summary).toEqual({
-      selectedCount: 5,
-      assassinCount: 1,
-      detectiveCount: 1,
-      innocentCount: 3,
-    })
-    expect(result.current.viewState.rows[0].role).toBe(PlayerRole.ASSASSIN)
-    expect(result.current.viewState.rows[1].role).toBe(PlayerRole.DETECTIVE)
-    expect(result.current.viewState.rows[2].role).toBe(PlayerRole.INNOCENT)
-  })
-
-  it('bloqueia menos de cinco participantes com mensagem em português', async () => {
-    const { result, startMatch } = await renderViewModel()
-
-    act(() => {
-      ;['p-1', 'p-2', 'p-3', 'p-4'].forEach((participantId) =>
-        result.current.actions.toggleParticipant(participantId),
-      )
-    })
-
+    expect(result.current.viewState.summary.selectedCount).toBe(0)
     expect(result.current.viewState.blockingMessage).toBe(
       'Selecione pelo menos cinco participantes.',
     )
 
     act(() => {
-      result.current.actions.submit()
+      result.current.actions.selectAll()
     })
 
-    expect(startMatch).not.toHaveBeenCalled()
+    expect(result.current.viewState.summary.selectedCount).toBe(6)
+    expect(
+      result.current.viewState.rows.find((row) => row.participantId === 'p-1').role,
+    ).toBe(PlayerRole.ASSASSIN)
+  })
+
+  it('preserva o papel ao desmarcar e remarcar um participante', async () => {
+    const { result } = await renderViewModel()
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
+
+    act(() => {
+      result.current.actions.setParticipantRole('p-1', PlayerRole.ASSASSIN)
+      result.current.actions.toggleParticipant('p-1')
+    })
+
+    expect(result.current.viewState.counts.selectedCount).toBe(5)
+
+    act(() => {
+      result.current.actions.toggleParticipant('p-1')
+    })
+
+    expect(
+      result.current.viewState.rows.find((row) => row.participantId === 'p-1').role,
+    ).toBe(PlayerRole.ASSASSIN)
+  })
+
+  it('atualiza o contador e valida o mínimo após cada alteração', async () => {
+    const { result } = await renderViewModel()
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
+
+    act(() => {
+      result.current.actions.toggleParticipant('p-6')
+      result.current.actions.toggleParticipant('p-5')
+    })
+
+    expect(result.current.viewState.counts.selectedCount).toBe(4)
+    expect(result.current.viewState.blockingMessage).toBe(
+      'Selecione pelo menos cinco participantes.',
+    )
   })
 
   it('bloqueia configuração sem assassino', async () => {
     const { result, startMatch } = await renderViewModel()
-
-    act(() => {
-      ;['p-1', 'p-2', 'p-3', 'p-4', 'p-5'].forEach((participantId) =>
-        result.current.actions.toggleParticipant(participantId),
-      )
-    })
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
 
     expect(result.current.viewState.blockingMessage).toBe(
       'Inclua pelo menos um assassino.',
@@ -142,18 +156,21 @@ describe('useMatchSetupViewModel', () => {
     expect(startMatch).not.toHaveBeenCalled()
   })
 
-  it('inicia a sessão válida com os papéis escolhidos e sem sorteio', async () => {
+  it('inicia a sessão apenas com os selecionados e papéis escolhidos', async () => {
     const startMatch = vi.fn(() => ({ id: 'session-1' }))
     const onStarted = vi.fn()
     const { result } = await renderViewModel({ startMatch, onStarted })
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
 
     act(() => {
-      ;['p-1', 'p-2', 'p-3', 'p-4', 'p-5'].forEach((participantId) =>
-        result.current.actions.toggleParticipant(participantId),
-      )
-    })
-
-    act(() => {
+      result.current.actions.deselectAll()
+      result.current.actions.toggleParticipant('p-1')
+      result.current.actions.toggleParticipant('p-2')
+      result.current.actions.toggleParticipant('p-3')
+      result.current.actions.toggleParticipant('p-4')
+      result.current.actions.toggleParticipant('p-5')
       result.current.actions.setParticipantRole('p-1', PlayerRole.ASSASSIN)
       result.current.actions.setParticipantRole('p-2', PlayerRole.DETECTIVE)
     })
@@ -187,11 +204,11 @@ describe('useMatchSetupViewModel', () => {
     })
     const onStarted = vi.fn()
     const { result } = await renderViewModel({ startMatch, onStarted })
+    await waitFor(() =>
+      expect(result.current.viewState.summary.selectedCount).toBe(6),
+    )
 
     act(() => {
-      ;['p-1', 'p-2', 'p-3', 'p-4', 'p-5'].forEach((participantId) =>
-        result.current.actions.toggleParticipant(participantId),
-      )
       result.current.actions.setParticipantRole('p-1', PlayerRole.ASSASSIN)
     })
 
@@ -205,7 +222,7 @@ describe('useMatchSetupViewModel', () => {
 
   it('traduz erros de carregamento em mensagem segura', async () => {
     const participantRepository = {
-      list: vi.fn(async () => {
+      listActive: vi.fn(async () => {
         throw new Error('falha interna')
       }),
     }

@@ -5,6 +5,7 @@
 **Base do cliente**: `/api`
 **Servidor real**: JSON Server em `http://localhost:3001`
 **Formato**: JSON
+**Atualizado**: 2026-11-17
 
 ## 1. Visão geral
 
@@ -20,25 +21,40 @@ O contrato usa IDs UUID fornecidos pelo cliente. Não há autenticação. A API 
 ## 2. Recursos
 
 ```text
-participants: Participant[]
-matches: Match[]        # somente partidas finalizadas na estratégia atual
+participants: Participant[]   # inclui ativos e arquivados
+matches: Match[]              # somente partidas finalizadas na estratégia atual
 ```
 
-Não existem recursos para turnos, ações noturnas, investigações, votos ou ranking.
+Não existem recursos para turnos, ações noturnas, investigações, votos ou ranking. Participantes não são removidos fisicamente; a exclusão é um arquivamento via `deletedAt`. Partidas finalizadas podem ser removidas com `DELETE`.
 
 ## 3. Participant
 
 ```json
 {
   "id": "2f8c9e6a-1b2c-4d5e-8f90-123456789abc",
-  "name": "Ana"
+  "name": "Ana",
+  "deletedAt": null
+}
+```
+
+Participante arquivado:
+
+```json
+{
+  "id": "2f8c9e6a-1b2c-4d5e-8f90-123456789abc",
+  "name": "Ana",
+  "deletedAt": "2026-11-17T21:00:00.000Z"
 }
 ```
 
 Validações do cliente:
 
 - `id`: UUID.
-- `name`: string não vazia após `trim`, única sem diferenciar maiúsculas/minúsculas.
+- `name`: string não vazia após `trim`, única sem diferenciar maiúsculas/minúsculas no **cadastro ativo**.
+- `deletedAt`: `null` ou string ISO. Ausente é normalizado para `null`; tipos inválidos geram erro de resposta.
+- O cadastro ativo considera apenas `deletedAt == null`. Arquivados não são editáveis nem selecionáveis em novas partidas.
+- O nome de um arquivado é preservado para histórico e ranking; um novo cadastro pode reutilizar o nome, distinguido por `id`.
+- O arquivamento é bloqueado no cliente quando o participante está na partida em andamento.
 
 ## 4. Match
 
@@ -76,6 +92,9 @@ Validações do cliente:
 - `turnCount`: inteiro ≥ 0.
 - `participants`: um ou mais `MatchParticipant`.
 - Os nomes não são duplicados; apenas `participantId` é armazenado.
+- Na vitória dos assassinos, todos os não assassinos estão `DEAD` no documento persistido; assassinos já eliminados permanecem `DEAD` e assassinos vivos permanecem `ALIVE`.
+- O `eliminatedAt` dos não assassinos eliminados em massa contém o turno e a fase (`NIGHT` ou `VOTE`) da vitória; eliminados anteriores mantêm o momento original.
+- Partidas finalizadas podem ser removidas; o documento não é atualizado após o encerramento.
 
 ## 5. Endpoints
 
@@ -89,12 +108,12 @@ Resposta `200`:
 
 ```json
 [
-  { "id": "uuid-1", "name": "Ana" },
-  { "id": "uuid-2", "name": "Bruno" }
+  { "id": "uuid-1", "name": "Ana", "deletedAt": null },
+  { "id": "uuid-2", "name": "Bruno", "deletedAt": "2026-11-17T21:00:00.000Z" }
 ]
 ```
 
-O cliente ordena alfabeticamente para exibição.
+O cliente ordena alfabeticamente para exibição. Cadastro e configuração filtram `deletedAt == null`; histórico e ranking usam todos.
 
 ### 5.2 Criar participante
 
@@ -104,13 +123,14 @@ Content-Type: application/json
 
 {
   "id": "uuid-1",
-  "name": "Ana"
+  "name": "Ana",
+  "deletedAt": null
 }
 ```
 
 Resposta `201` com o participante criado.
 
-Erros de regra: o JSON Server não valida nome único. O cliente bloqueia antes do envio. Falha de rede/formato vira `ApiError`.
+Erros de regra: o JSON Server não valida nome único. O cliente bloqueia antes do envio, comparando apenas ativos. Falha de rede/formato vira `ApiError`.
 
 ### 5.3 Editar participante
 
@@ -125,11 +145,30 @@ Content-Type: application/json
 
 Resposta `200` com o participante atualizado.
 
-- O cliente valida nome obrigatório e único, excluindo o próprio registro.
-- O `id` não é alterado.
+- O cliente valida nome obrigatório e único no cadastro ativo, excluindo o próprio registro.
+- O `id` e `deletedAt` não são alterados pela edição.
+- Participantes arquivados não são editáveis.
 - O vínculo com partidas antigas permanece porque as partidas referenciam `participantId`.
 
-### 5.4 Listar partidas finalizadas
+### 5.4 Arquivar participante
+
+```http
+PATCH /api/participants/:id
+Content-Type: application/json
+
+{
+  "deletedAt": "2026-11-17T21:00:00.000Z"
+}
+```
+
+Resposta `200` com o participante arquivado.
+
+- A exclusão de participante é um arquivamento; **não** usar `DELETE /participants/:id`.
+- O cliente solicita confirmação e bloqueia a operação se o participante estiver na partida em andamento.
+- Após o arquivamento, o participante sai do cadastro ativo e das novas partidas, mas permanece no histórico e no ranking com o último nome.
+- O nome pode ser reutilizado em um novo cadastro; os registros são distintos por `id`.
+
+### 5.5 Listar partidas finalizadas
 
 ```http
 GET /api/matches?status=FINISHED&_sort=endedAt&_order=desc
@@ -139,7 +178,7 @@ Resposta `200`: array de `Match`.
 
 Usado pelo histórico e pelo ranking. O cliente deve ignorar defensivamente qualquer documento cujo `status` não seja `FINISHED`.
 
-### 5.5 Consultar partida
+### 5.6 Consultar partida
 
 ```http
 GET /api/matches/:id
@@ -150,7 +189,7 @@ Resposta `404`: partida inexistente.
 
 Usado no detalhe do histórico. O histórico também pode usar os dados já carregados pela listagem.
 
-### 5.6 Gravar partida finalizada
+### 5.7 Gravar partida finalizada
 
 ```http
 PUT /api/matches/:id
@@ -164,10 +203,25 @@ Resposta `200` (substituído) ou `201` (criado).
 - O `id` é gerado no início da partida e enviado no corpo e na URL.
 - A operação é um upsert idempotente: repetir com o mesmo corpo não duplica a partida.
 - Deve ser chamada apenas quando a partida estiver `FINISHED`.
-- O documento inclui os `MatchParticipant` embutidos.
+- O documento inclui os `MatchParticipant` embutidos, já com a atualização em massa de status quando a vitória for dos assassinos.
 - Se falhar, o cliente mantém o resultado em tela e oferece “Tentar novamente”.
 
-### 5.7 Diagnóstico de existência
+### 5.8 Excluir partida finalizada
+
+```http
+DELETE /api/matches/:id
+```
+
+Resposta `200`/`204` (removida) ou `404` (já inexistente).
+
+- Disponível apenas no histórico, para partidas `FINISHED`.
+- O cliente solicita confirmação e permite cancelar sem alteração.
+- A remoção é definitiva e não altera participantes nem outras partidas.
+- O ranking é derivado; a contribuição da partida desaparece na próxima leitura.
+- `404` pode ser tratado como remoção já concluída, com atualização da lista.
+- Não há exclusão de partida em andamento; ela não existe na persistência.
+
+### 5.9 Diagnóstico de existência
 
 ```http
 GET /api/matches/:id
@@ -183,6 +237,7 @@ Pode ser usado para verificar se uma gravação anterior já existe. Não é nec
 | Criação bem-sucedida | `201` | Item atualizado na lista. |
 | Participante inexistente no `PATCH` | `404` | `ApiError` com mensagem “Participante não encontrado”. |
 | Partida inexistente no `GET` | `404` | `ApiError`/estado vazio no histórico. |
+| Partida inexistente no `DELETE` | `404` | Tratar como já removida; atualizar histórico e ranking. |
 | JSON inválido ou erro interno | `400`/`500` | `ApiError` genérico com opção de nova tentativa. |
 | Servidor indisponível | erro de rede | `ApiError` de conexão; instrução para iniciar o JSON Server. |
 
@@ -199,10 +254,12 @@ O cliente encapsula todas as chamadas em `shared/api/httpClient.js`:
 - Existência de assassino.
 - Atribuição de papéis.
 - Ordem das fases.
-- Processamento de eliminações.
+- Processamento de eliminações, incluindo a atualização em massa na vitória dos assassinos.
 - Condições de vitória.
-- Cálculo de ranking.
-- Unicidade de nome (validada no cliente).
+- Cálculo de ranking com ativos e arquivados.
+- Unicidade de nome no cadastro ativo (validada no cliente).
+- Bloqueio de arquivamento durante partida em andamento (validado no cliente).
+- Regra de que participantes nunca são removidos fisicamente.
 
 Essas regras ficam no domínio e no ViewModel, nunca no JSON Server.
 
@@ -210,8 +267,9 @@ Essas regras ficam no domínio e no ViewModel, nunca no JSON Server.
 
 - Sem autenticação e sem autorização.
 - Sem transações entre recursos; mitigado pelo documento de partida embutido.
-- Sem constraint de unicidade de nome.
+- Sem constraint de unicidade de nome; a validação considera apenas ativos.
 - Sem validação de esquema.
 - Sem paginação; volume pequeno.
+- Sem restauração de participante arquivado ou de partida excluída.
 - Alterações são gravadas em `db.json`; o arquivo é a fonte persistida local.
 - O servidor deve ser iniciado separadamente ou via script `dev:all`.

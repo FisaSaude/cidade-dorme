@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { AppProviders } from '@/app/providers/AppProviders'
@@ -17,8 +17,11 @@ const PARTICIPANTS = [
 ]
 
 function createParticipantRepository(participants = PARTICIPANTS) {
+  const active = participants.filter((participant) => !participant.deletedAt)
+
   return {
     list: vi.fn(async () => participants.map((participant) => ({ ...participant }))),
+    listActive: vi.fn(async () => active.map((participant) => ({ ...participant }))),
   }
 }
 
@@ -87,46 +90,60 @@ function renderSetup({ participantRepository, onStarted = vi.fn() }) {
   )
 }
 
-async function selectParticipants(user, names) {
-  for (const name of names) {
-    await user.click(await screen.findByRole('checkbox', { name }))
-  }
+async function waitForDefaultSelection(count = 5) {
+  await waitFor(() =>
+    expect(screen.getByText(`${count} de ${count} selecionados`)).toBeTruthy(),
+  )
 }
 
 describe('Configuração da partida (integração)', () => {
-  it('bloqueia o início com menos de cinco participantes', async () => {
-    const user = userEvent.setup()
+  it('abre com todos os ativos selecionados e contador preenchido', async () => {
     renderSetup({ participantRepository: createParticipantRepository() })
 
-    await selectParticipants(user, ['Ana', 'Bruno', 'Carla', 'Davi'])
+    await waitForDefaultSelection()
+    expect(screen.getByText('Inclua pelo menos um assassino.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Iniciar partida' }).disabled).toBe(true)
+  })
 
+  it('desmarca e seleciona todos com bloqueios recalculados', async () => {
+    const user = userEvent.setup()
+    renderSetup({ participantRepository: createParticipantRepository() })
+    await waitForDefaultSelection()
+
+    await user.click(screen.getByRole('button', { name: 'Desmarcar todos' }))
+    expect(screen.getByText('0 de 5 selecionados')).toBeTruthy()
     expect(
       screen.getByText('Selecione pelo menos cinco participantes.'),
     ).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Iniciar partida' }).disabled).toBe(true)
-    expect(screen.getByText('Sem sessão iniciada')).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Selecionar todos' }))
+    expect(screen.getByText('5 de 5 selecionados')).toBeTruthy()
+    expect(screen.getByText('Inclua pelo menos um assassino.')).toBeTruthy()
   })
 
-  it('bloqueia o início sem assassino', async () => {
+  it('preserva o papel ao desmarcar e remarcar o participante', async () => {
     const user = userEvent.setup()
     renderSetup({ participantRepository: createParticipantRepository() })
+    await waitForDefaultSelection()
 
-    await selectParticipants(user, ['Ana', 'Bruno', 'Carla', 'Davi', 'Elisa'])
+    await user.selectOptions(screen.getByLabelText('Papel de Ana'), 'ASSASSIN')
+    await user.click(screen.getByRole('checkbox', { name: 'Ana' }))
+    expect(screen.getByText('4 de 5 selecionados')).toBeTruthy()
 
-    expect(screen.getByText('Inclua pelo menos um assassino.')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Iniciar partida' }).disabled).toBe(true)
-    expect(screen.getByText('Sem sessão iniciada')).toBeTruthy()
+    await user.click(screen.getByRole('checkbox', { name: 'Ana' }))
+    expect(screen.getByText('5 de 5 selecionados')).toBeTruthy()
+    expect(screen.getByLabelText('Papel de Ana').value).toBe('ASSASSIN')
   })
 
-  it('permite iniciar sem detetive, com inocentes padrão e todos vivos, sem sorteio', async () => {
+  it('inicia sem detetive, com inocentes padrão e todos vivos, sem sorteio', async () => {
     const user = userEvent.setup()
     const onStarted = vi.fn()
     renderSetup({
       participantRepository: createParticipantRepository(),
       onStarted,
     })
+    await waitForDefaultSelection()
 
-    await selectParticipants(user, ['Ana', 'Bruno', 'Carla', 'Davi', 'Elisa'])
     await user.selectOptions(screen.getByLabelText('Papel de Ana'), 'ASSASSIN')
 
     expect(screen.queryByText('Inclua pelo menos um assassino.')).toBeNull()
@@ -158,8 +175,8 @@ describe('Configuração da partida (integração)', () => {
   it('atribui exatamente um papel por participante selecionado', async () => {
     const user = userEvent.setup()
     renderSetup({ participantRepository: createParticipantRepository() })
+    await waitForDefaultSelection()
 
-    await selectParticipants(user, ['Ana', 'Bruno', 'Carla', 'Davi', 'Elisa'])
     await user.selectOptions(screen.getByLabelText('Papel de Ana'), 'ASSASSIN')
     await user.selectOptions(screen.getByLabelText('Papel de Bruno'), 'DETECTIVE')
 

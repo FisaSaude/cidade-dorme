@@ -49,9 +49,11 @@
 
   --focus-ring: 0 0 0 3px rgba(197, 48, 63, 0.65);
 
-  --z-overlay: 1000;
-  --z-dialog: 1100;
-  --z-dialog-elevated: 1200;
+  /* Ordem de empilhamento: conteúdo < anúncio < encerramento < confirmação. */
+  --z-content: 0;
+  --z-announcement: 1100;
+  --z-persistent-closure: 1150;
+  --z-confirm-dialog: 1200;
 
   --transition-fast: 150ms ease;
   --transition-slow: 400ms ease;

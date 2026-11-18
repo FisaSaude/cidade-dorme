@@ -53,6 +53,7 @@ describe('MatchSessionProvider', () => {
 
     expect(result.current.session).toBeNull()
     expect(result.current.hasActiveSession).toBe(false)
+    expect(result.current.activeParticipantIds).toEqual([])
   })
 
   it('cria a sessão usando idFactory e now injetados', () => {
@@ -94,6 +95,13 @@ describe('MatchSessionProvider', () => {
 
     expect(result.current.session).toBe(session)
     expect(result.current.hasActiveSession).toBe(true)
+    expect(result.current.activeParticipantIds).toEqual([
+      'p-1',
+      'p-2',
+      'p-3',
+      'p-4',
+      'p-5',
+    ])
   })
 
   it('propaga erros de configuração sem criar sessão', () => {

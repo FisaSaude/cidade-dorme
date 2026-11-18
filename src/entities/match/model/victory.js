@@ -1,4 +1,9 @@
-import { PlayerRole, PlayerStatus } from '@/entities/match-participant'
+import {
+  eliminateMatchParticipant,
+  PlayerRole,
+  PlayerStatus,
+} from '@/entities/match-participant'
+import { EliminationPhase } from './matchPhases'
 
 /**
  * Resultados possíveis de uma partida decidida por vitória.
@@ -39,6 +44,44 @@ export function evaluateVictory(session) {
   }
 
   return null
+}
+
+/**
+ * Aplica o status final da vitória dos assassinos sem reavaliar a vitória.
+ * Não assassinos vivos são eliminados no turno/fase informados; mortos e
+ * assassinos permanecem como estão.
+ * @param {{ currentTurn: number, match: { participants: Array<object> } }} session
+ * @param {'NIGHT' | 'VOTE'} phase
+ * @returns {object}
+ */
+export function applyAssassinsVictoryStatuses(session, phase) {
+  if (
+    phase !== EliminationPhase.NIGHT &&
+    phase !== EliminationPhase.VOTE
+  ) {
+    throw new TypeError('Assassins victory phase must be NIGHT or VOTE.')
+  }
+
+  const eliminatedAt = { turn: session.currentTurn, phase }
+  const participants = session.match.participants.map((participant) => {
+    if (participant.role === PlayerRole.ASSASSIN) {
+      return participant
+    }
+
+    if (participant.status !== PlayerStatus.ALIVE) {
+      return participant
+    }
+
+    return eliminateMatchParticipant(participant, eliminatedAt)
+  })
+
+  return {
+    ...session,
+    match: {
+      ...session.match,
+      participants,
+    },
+  }
 }
 
 export default evaluateVictory

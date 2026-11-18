@@ -4,6 +4,7 @@
 **Módulo**: `src/entities/match/model/matchEngine.js`
 **Tipo**: contrato de funções puras do domínio
 **Dependências**: nenhuma de React, DOM, HTTP ou JSON Server
+**Atualizado**: 2026-11-17
 
 ## 1. Princípios
 
@@ -117,10 +118,11 @@ Processa todas as escolhas dos assassinos em conjunto. `endedAt` é usado soment
 3. Para cada alvo único vivo, marcar `DEAD` e `eliminatedAt = { turn: currentTurn, phase: "NIGHT" }`.
 4. Registrar `nightResult.eliminatedParticipantIds`.
 5. Avaliar vitória.
+6. Se o vencedor for `ASSASSINS`, aplicar `applyAssassinsVictoryStatuses` com `phase = "NIGHT"` antes de finalizar.
 
 **Resultado**
 
-- Se vitória: `match.status = FINISHED`, `closureReason = VICTORY`, `winner`, `endedAt` recebido pelo comando, `phase = FINISHED`, incrementa `turnCount`.
+- Se vitória: `match.status = FINISHED`, `closureReason = VICTORY`, `winner`, `endedAt` recebido pelo comando, `phase = FINISHED`, incrementa `turnCount`; o documento final já contém os status em massa quando o vencedor é `ASSASSINS`.
 - Senão, se houver detetive vivo: `phase = DETECTIVES_ANNOUNCEMENT`.
 - Senão: `phase = DAWN_ANNOUNCEMENT`.
 
@@ -183,9 +185,10 @@ Registra o resultado da votação presencial. `endedAt` é usado somente se houv
 1. Registrar `voteResult`.
 2. Se `ELIMINATION`, marcar `DEAD` e `eliminatedAt = { turn: currentTurn, phase: "VOTE" }`.
 3. Avaliar vitória.
-4. Incrementar `turnCount`.
-5. Se vitória: `status = FINISHED`, `closureReason = VICTORY`, `winner`, `endedAt`, `phase = FINISHED`.
-6. Senão: `currentTurn += 1`, `phase = TURN_START`, limpar dados temporários do turno.
+4. Se o vencedor for `ASSASSINS`, aplicar `applyAssassinsVictoryStatuses` com `phase = "VOTE"` antes de finalizar.
+5. Incrementar `turnCount`.
+6. Se vitória: `status = FINISHED`, `closureReason = VICTORY`, `winner`, `endedAt`, `phase = FINISHED`; o documento final já contém os status em massa quando o vencedor é `ASSASSINS`.
+7. Senão: `currentTurn += 1`, `phase = TURN_START`, limpar dados temporários do turno.
 
 Um empate não altera status. A avaliação de vitória ocorre mesmo em empate, mas não pode criar uma nova vitória sem mudança de vivos.
 
@@ -223,9 +226,19 @@ getDeadParticipants(session) -> MatchParticipant[]
 getEligibleTargets(session, actorId) -> MatchParticipant[]
 getParticipantById(session, participantId) -> MatchParticipant | undefined
 evaluateVictory(session) -> "INNOCENTS" | "ASSASSINS" | null
+applyAssassinsVictoryStatuses(session, phase) -> MatchSession
 ```
 
 `getEligibleTargets` retorna vivos, excluindo o próprio ator. Para assassinos, inclui outros assassinos.
+
+`applyAssassinsVictoryStatuses(session, phase)` é pura, não avalia novamente a vitória e só deve ser chamada quando `evaluateVictory` retornar `ASSASSINS`:
+
+1. Não assassinos `ALIVE` → `DEAD` com `eliminatedAt = { turn: currentTurn, phase }`.
+2. Não assassinos `DEAD` mantêm `eliminatedAt` e não são alterados.
+3. Assassinos `ALIVE` permanecem `ALIVE`; assassinos `DEAD` permanecem `DEAD`, sem ressurreição.
+4. Nenhum `role` é alterado.
+5. `phase` aceita `"NIGHT"` ou `"VOTE"`; outros valores são erro de programação (`TypeError`).
+6. A sessão retornada é imutável em relação à entrada.
 
 ## 5. Códigos de erro
 
@@ -261,6 +274,7 @@ ViewModel --comando--> Engine --nova sessão--> ViewModel
 
 - A gravação ocorre uma vez por partida.
 - Repetir a gravação é seguro (`PUT` idempotente).
+- Quando o vencedor é `ASSASSINS`, o `Match` salvo já contém a atualização em massa de status; a persistência não aplica regra de domínio.
 - Falha de gravação não desfaz o estado `FINISHED`; o ViewModel exibe erro e permite nova tentativa.
 - O motor nunca conhece o JSON Server.
 
@@ -276,3 +290,6 @@ ViewModel --comando--> Engine --nova sessão--> ViewModel
 8. O turno decisivo por vitória é contado (decisão D3).
 9. `turnCount` só cresce.
 10. As ações temporárias são limpas no novo turno.
+11. Na vitória dos assassinos, todos os não assassinos terminam `DEAD`, sem alterar o momento de eliminação de quem já estava morto.
+12. Nenhum assassino morto ressuscita na atualização em massa.
+13. A atualização em massa ocorre exatamente uma vez e antes de `status = FINISHED`.

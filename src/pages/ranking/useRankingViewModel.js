@@ -21,7 +21,7 @@ function toUserMessage(error) {
  * as sobrevivências de cada participante cadastrado.
  * @param {{
  *   matchRepository: { listFinished: Function },
- *   participantRepository: { list: Function },
+ *   participantRepository: { list: Function, listAll?: Function },
  * }} repositories
  */
 export function useRankingViewModel({
@@ -33,8 +33,13 @@ export function useRankingViewModel({
   }
 
   const load = useCallback(async () => {
+    const loadParticipants =
+      typeof participantRepository.listAll === 'function'
+        ? participantRepository.listAll()
+        : participantRepository.list()
+
     const [participants, matches] = await Promise.all([
-      participantRepository.list(),
+      loadParticipants,
       matchRepository.listFinished(),
     ])
 

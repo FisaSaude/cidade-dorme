@@ -4,9 +4,19 @@ import styles from './MatchHistory.module.css'
 
 /**
  * Detalhe de uma partida finalizada.
- * @param {{ detail: object, onBack: () => void }} props
+ * @param {{
+ *   detail: object,
+ *   deleting?: boolean,
+ *   onBack: () => void,
+ *   onDelete?: (matchId: string) => void,
+ * }} props
  */
-export function MatchHistoryDetail({ detail, onBack }) {
+export function MatchHistoryDetail({
+  detail,
+  deleting = false,
+  onBack,
+  onDelete,
+}) {
   const participants = detail.participants ?? []
 
   return (
@@ -18,9 +28,19 @@ export function MatchHistoryDetail({ detail, onBack }) {
         <h3 id="history-detail-title" className={styles.sectionTitle}>
           Detalhes da partida
         </h3>
-        <Button variant="secondary" onClick={onBack}>
-          Voltar para a lista
-        </Button>
+        <div className={styles.detailActions}>
+          <Button
+            variant="ghost"
+            disabled={deleting}
+            aria-label="Excluir partida"
+            onClick={() => onDelete?.(detail.id)}
+          >
+            {deleting ? 'Excluindo…' : 'Excluir partida'}
+          </Button>
+          <Button variant="secondary" onClick={onBack}>
+            Voltar para a lista
+          </Button>
+        </div>
       </div>
 
       <MatchOutcomeBadge

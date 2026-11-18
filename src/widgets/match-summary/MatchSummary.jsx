@@ -34,6 +34,13 @@ function describeElimination(eliminatedAt) {
  *     endedAtLabel?: string,
  *     survivors: Array<{ participantId: string, name: string }>,
  *     eliminated: Array<{ participantId: string, name: string, eliminatedAt?: object | null }>,
+ *     bulkElimination?: {
+ *       turn: number,
+ *       phase: string,
+ *       label: string,
+ *       description: string,
+ *       participants: Array<{ participantId: string, name: string }>,
+ *     } | null,
  *   },
  *   persistence?: { state?: string, error?: string, savedMatchId?: string | null },
  *   onRetry?: () => void,
@@ -57,6 +64,26 @@ export function MatchSummary({
         winner={result.winner}
         closureReason={result.closureReason}
       />
+
+      {result.bulkElimination ? (
+        <section
+          className={styles.bulk}
+          aria-labelledby="match-bulk-elimination-title"
+        >
+          <h4 id="match-bulk-elimination-title" className={styles.columnTitle}>
+            Eliminação em massa
+          </h4>
+          <p className={styles.muted}>
+            {result.bulkElimination.description}{' '}
+            {result.bulkElimination.label}.
+          </p>
+          <ul className={styles.list}>
+            {result.bulkElimination.participants.map((participant) => (
+              <li key={participant.participantId}>{participant.name}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <dl className={styles.stats}>
         <div className={styles.stat}>

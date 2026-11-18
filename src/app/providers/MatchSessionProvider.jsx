@@ -111,6 +111,10 @@ export function MatchSessionProvider({ children }) {
     session && session.match.status === MatchStatus.IN_PROGRESS,
   )
 
+  const activeParticipantIds = hasActiveSession
+    ? session.match.participants.map((participant) => participant.participantId)
+    : []
+
   const runSessionCommand = useCallback((command) => {
     let nextSnapshot = null
     setSession((current) => {
@@ -170,6 +174,7 @@ export function MatchSessionProvider({ children }) {
     () => ({
       session,
       hasActiveSession,
+      activeParticipantIds,
       persistence,
       startMatch,
       persistFinishedMatch,
@@ -184,6 +189,7 @@ export function MatchSessionProvider({ children }) {
       finishManually: finishCurrentMatchManually,
     }),
     [
+      activeParticipantIds,
       dismissCurrentAnnouncement,
       finishCurrentMatchManually,
       hasActiveSession,

@@ -52,6 +52,30 @@ export const gameRuleErrorMessages = Object.freeze({
   VOTE_ALREADY_REGISTERED: 'O resultado da votação deste turno já foi registrado.',
   MATCH_ALREADY_FINISHED: 'A partida já foi encerrada.',
   INVALID_VOTE_RESULT: 'O resultado da votação é inválido.',
+  PARTICIPANT_IN_ACTIVE_MATCH:
+    'Não é possível excluir um participante da partida em andamento.',
+  MATCH_NOT_FINISHED: 'Apenas partidas finalizadas podem ser excluídas.',
+})
+
+export const uiMessages = Object.freeze({
+  participantArchiveConfirmTitle: 'Excluir participante?',
+  participantArchiveConfirmDescription:
+    'O participante sai do cadastro ativo e das novas partidas, mas permanece no histórico e no ranking.',
+  participantArchiveSuccess: 'Participante excluído do cadastro ativo.',
+  participantArchiveFailure:
+    'Não foi possível excluir o participante. Tente novamente.',
+  participantArchiveBlockedActiveMatch:
+    'Não é possível excluir um participante que está na partida em andamento.',
+  matchDeletionConfirmTitle: 'Excluir partida do histórico?',
+  matchDeletionConfirmDescription:
+    'A partida será removida definitivamente do histórico e deixará de contar no ranking.',
+  matchDeletionSuccess: 'Partida excluída do histórico.',
+  matchDeletionAlreadyRemoved:
+    'A partida já havia sido removida. O histórico foi atualizado.',
+  matchDeletionFailure:
+    'Não foi possível excluir a partida. Tente novamente.',
+  assassinsVictoryBulkStatus:
+    'Todos os não assassinos foram eliminados na vitória dos assassinos.',
 })
 
 export const DEFAULT_ERROR_MESSAGE =

@@ -76,53 +76,97 @@ function renderPage(matchRepository = {}) {
   )
 }
 
+function getFinishButtons() {
+  return screen.getAllByRole('button', { name: 'Encerrar partida' })
+}
+
 describe('Encerramento manual (integração)', () => {
-  it('abre diálogo, permite cancelar e confirmar sem vencedor', async () => {
+  it('mantém um único botão persistente durante a sobreposição', async () => {
+    const user = userEvent.setup()
+    renderPage({ saveFinishedMatch: vi.fn(async (match) => match) })
+
+    await user.click(screen.getByRole('button', { name: 'iniciar' }))
+
+    const announcement = await screen.findByRole('dialog', {
+      name: 'Cidade Dorme',
+    })
+    expect(announcement).toBeTruthy()
+    expect(getFinishButtons()).toHaveLength(1)
+    expect(within(announcement).queryByRole('button')).toBeNull()
+  })
+
+  it('abre a confirmação acima do overlay e preserva a sobreposição ao cancelar', async () => {
+    const user = userEvent.setup()
+    renderPage({ saveFinishedMatch: vi.fn(async (match) => match) })
+
+    await user.click(screen.getByRole('button', { name: 'iniciar' }))
+
+    const announcement = await screen.findByRole('dialog', {
+      name: 'Cidade Dorme',
+    })
+    expect(announcement.dataset.layer).toBe('announcement')
+
+    const finishButton = getFinishButtons()[0]
+    expect(
+      finishButton.closest('[data-layer="persistent-closure"]'),
+    ).toBeTruthy()
+    expect(announcement.contains(finishButton)).toBe(false)
+
+    await user.click(finishButton)
+
+    const confirmDialog = await screen.findByRole('dialog', {
+      name: 'Encerrar partida manualmente?',
+    })
+    expect(overlayContains(announcement, confirmDialog)).toBe(false)
+    expect(confirmDialog.closest('[data-layer="confirm"]')).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Continuar partida' }))
+    expect(screen.queryByText('Encerrar partida manualmente?')).toBeNull()
+    expect(screen.getByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
+    await waitFor(() => expect(document.activeElement).toBe(finishButton))
+  })
+
+  it('aciona o encerramento por teclado durante a sobreposição', async () => {
+    const user = userEvent.setup()
+    renderPage({ saveFinishedMatch: vi.fn(async (match) => match) })
+
+    await user.click(screen.getByRole('button', { name: 'iniciar' }))
+    await screen.findByRole('dialog', { name: 'Cidade Dorme' })
+
+    const finishButton = getFinishButtons()[0]
+    finishButton.focus()
+    expect(document.activeElement).toBe(finishButton)
+
+    await user.keyboard('{Enter}')
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: 'Encerrar partida manualmente?',
+      }),
+    ).toBeTruthy()
+  })
+
+  it('confirma o encerramento sem vencedor e desabilita o ponto único', async () => {
     const user = userEvent.setup()
     const saveFinishedMatch = vi.fn(async (match) => match)
     renderPage({ saveFinishedMatch })
 
     await user.click(screen.getByRole('button', { name: 'iniciar' }))
+    await screen.findByRole('dialog', { name: 'Cidade Dorme' })
 
-    await user.click(screen.getAllByRole('button', { name: 'Encerrar partida' })[0])
-    expect(await screen.findByText('Encerrar partida manualmente?')).toBeTruthy()
-
-    await user.click(screen.getByRole('button', { name: 'Continuar partida' }))
-    expect(screen.queryByText('Encerrar partida manualmente?')).toBeNull()
-    expect(screen.getByText('Partida em andamento')).toBeTruthy()
-
-    await user.click(screen.getAllByRole('button', { name: 'Encerrar partida' })[0])
+    await user.click(getFinishButtons()[0])
     await user.click(screen.getByRole('button', { name: 'Encerrar agora' }))
 
     expect(await screen.findByText('Partida encerrada sem vencedor')).toBeTruthy()
     expect(screen.getByText('Encerramento manual')).toBeTruthy()
     expect(saveFinishedMatch).toHaveBeenCalledTimes(1)
-  })
 
-  it('mantém overlay ativa ao abrir encerramento pelo footerAction', async () => {
-    const user = userEvent.setup()
-    const saveFinishedMatch = vi.fn(async (match) => match)
-    renderPage({ saveFinishedMatch })
-
-    await user.click(screen.getByRole('button', { name: 'iniciar' }))
-
-    expect(await screen.findByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
-
-    const overlay = await screen.findByRole('dialog', { name: 'Cidade Dorme' })
-    await user.click(within(overlay).getByRole('button', { name: 'Encerrar partida' }))
-    expect(await screen.findByText('Encerrar partida manualmente?')).toBeTruthy()
-
-    const confirmDialog = screen.getByRole('dialog', {
-      name: 'Encerrar partida manualmente?',
-    })
-    expect(document.body.contains(confirmDialog)).toBe(true)
-    expect(overlay.contains(confirmDialog)).toBe(false)
-
-    expect(screen.getByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
-
-    await user.click(screen.getByRole('button', { name: 'Encerrar agora' }))
-
-    expect(await screen.findByText('Partida encerrada sem vencedor')).toBeTruthy()
-    await waitFor(() => expect(saveFinishedMatch).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(getFinishButtons()).toHaveLength(1))
+    expect(getFinishButtons()[0].disabled).toBe(true)
   })
 })
+
+function overlayContains(announcement, confirmDialog) {
+  return announcement.contains(confirmDialog)
+}

@@ -50,6 +50,17 @@
 - [x] CHK029 O teste de arquitetura garante motor sem React/`fetch` e respeita os limites FSD (task T100).
 - [x] CHK030 As tarefas T105–T112 cobrem contratos, regras, persistência, UX, lint/build e evidências de validação (Phase 12).
 
+## Delta 2026-11-17
+
+- [x] CHK031 FR-075–FR-080 definem seleção padrão de todos os participantes, ações de selecionar/desmarcar todos, alteração individual, contador de selecionados e revalidação do mínimo de cinco (coberto por `tests/unit/matchSetup.test.js`, `tests/unit/useMatchSetupViewModel.test.jsx` e `tests/integration/matchSetup.test.jsx`).
+- [x] CHK032 FR-081–FR-088 definem arquivamento de participante com confirmação/cancelamento, bloqueio durante partida em andamento, remoção do cadastro ativo, preservação de histórico/ranking e reutilização de nome sem colisão de identidade (coberto por testes de `participantDeletion`, `participantRepository.archive` e `participants`).
+- [x] CHK033 FR-089–FR-095 definem exclusão definitiva de partida finalizada com confirmação/cancelamento, remoção do histórico, recálculo do ranking, bloqueio de partida em andamento, preservação de cadastro/outras partidas e estado vazio (coberto por `matchDeletion`, `historyViewModel` e `historyDeletion`).
+- [x] CHK034 FR-096–FR-101 definem ponto único de encerramento manual, acessível em todas as fases, inclusive sobre sobreposições, com confirmação/cancelamento e indisponível após o encerramento (coberto por `manualClosure` e `accessibility`).
+- [x] CHK035 FR-102–FR-110 definem atualização em massa dos status na vitória dos assassinos, preservação de assassinos vivos/mortos, registro de turno/fase, reflexo no resultado/histórico/ranking e persistência somente após a atualização (coberto por `assassinsVictoryStatuses`, `matchEngine.assassinsVictory`, `resultPersistence` e `matchSummary`).
+- [x] CHK036 As premissas A1–A5 estão refletidas nos requisitos e nos testes automatizados do delta.
+- [x] CHK037 As decisões Q1–Q3 aprovadas em 2026-11-17 estão refletidas na especificação, no plano e nos testes.
+- [ ] CHK038 O roteiro manual de `quickstart.md` 4.1–4.12 e as verificações de contrato 5.1–5.2 foram executados neste delta (T164).
+
 ## Notes
 
 - Marcar itens `[x]` somente após revisão que confirme o critério de qualidade dos requisitos.

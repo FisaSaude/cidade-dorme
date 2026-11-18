@@ -45,6 +45,7 @@ function AppShell() {
   const {
     session,
     hasActiveSession,
+    activeParticipantIds,
     startMatch,
     dismissAnnouncement,
     setAssassinTarget,
@@ -100,7 +101,10 @@ function AppShell() {
           <h1 id="screen-title">{content.title}</h1>
           <p className={styles.screenSubtitle}>{description}</p>
           {activeScreen === SCREENS.PARTICIPANTS ? (
-            <ParticipantsPage participantRepository={participantRepository} />
+            <ParticipantsPage
+              participantRepository={participantRepository}
+              activeParticipantIds={activeParticipantIds}
+            />
           ) : null}
           {activeScreen === SCREENS.MATCH_SETUP ? (
             <MatchSetupPage

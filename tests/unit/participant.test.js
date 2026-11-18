@@ -54,13 +54,17 @@ describe('participant', () => {
   it('preserva a grafia informada ao criar o participante', () => {
     const participant = createParticipant({ id: 'p-3', name: '  Carla Souza  ' })
 
-    expect(participant).toEqual({ id: 'p-3', name: 'Carla Souza' })
+    expect(participant).toEqual({
+      id: 'p-3',
+      name: 'Carla Souza',
+      deletedAt: null,
+    })
   })
 
   it('preserva o id ao renomear', () => {
     const renamed = renameParticipant(participants[0], ' Ana Maria ')
 
-    expect(renamed).toEqual({ id: 'p-1', name: 'Ana Maria' })
+    expect(renamed).toEqual({ id: 'p-1', name: 'Ana Maria', deletedAt: null })
     expect(participants[0]).toEqual({ id: 'p-1', name: 'Ana' })
   })
 

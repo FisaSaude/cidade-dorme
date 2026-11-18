@@ -22,8 +22,54 @@ function foldParticipantName(name) {
 }
 
 /**
- * Verifica se o nome já existe, ignorando maiúsculas/minúsculas e o próprio id.
- * @param {Array<{ id: string, name: string }>} [participants]
+ * Normaliza `deletedAt`: ausente ou nulo vira `null`; string ISO é preservada.
+ * @param {unknown} deletedAt
+ * @returns {string | null}
+ */
+export function normalizeParticipantDeletedAt(deletedAt) {
+  if (deletedAt === undefined || deletedAt === null) {
+    return null
+  }
+
+  if (typeof deletedAt !== 'string' || !deletedAt.trim()) {
+    throw new TypeError('Participant deletedAt must be an ISO string or null.')
+  }
+
+  return deletedAt
+}
+
+/**
+ * Indica se o participante pertence ao cadastro ativo.
+ * @param {{ deletedAt?: string | null } | null | undefined} participant
+ * @returns {boolean}
+ */
+export function isParticipantActive(participant) {
+  return normalizeParticipantDeletedAt(participant?.deletedAt) === null
+}
+
+/**
+ * Arquiva o participante preservando id e o último nome.
+ * @param {{ id: string, name: string, deletedAt?: string | null }} participant
+ * @param {string} deletedAt
+ * @returns {{ id: string, name: string, deletedAt: string }}
+ */
+export function archiveParticipant(participant, deletedAt) {
+  if (typeof deletedAt !== 'string' || !deletedAt.trim()) {
+    throw new TypeError('An ISO date is required to archive a participant.')
+  }
+
+  return {
+    ...participant,
+    id: participant.id,
+    name: participant.name,
+    deletedAt,
+  }
+}
+
+/**
+ * Verifica se o nome já existe entre os ativos, ignorando
+ * maiúsculas/minúsculas e o próprio id.
+ * @param {Array<{ id: string, name: string, deletedAt?: string | null }>} [participants]
  * @param {unknown} name
  * @param {string | null} [excludeId]
  * @returns {boolean}
@@ -37,7 +83,9 @@ export function isDuplicateParticipantName(participants, name, excludeId = null)
 
   return (participants ?? []).some(
     (participant) =>
-      participant.id !== excludeId && foldParticipantName(participant.name) === candidate,
+      isParticipantActive(participant) &&
+      participant.id !== excludeId &&
+      foldParticipantName(participant.name) === candidate,
   )
 }
 
@@ -64,10 +112,10 @@ export function validateParticipantName(name, participants = [], excludeId = nul
 
 /**
  * Cria um participante preservando o id informado e a grafia normalizada do nome.
- * @param {{ id?: string, name?: string }} [input]
- * @returns {{ id: string, name: string }}
+ * @param {{ id?: string, name?: string, deletedAt?: string | null }} [input]
+ * @returns {{ id: string, name: string, deletedAt: string | null }}
  */
-export function createParticipant({ id, name } = {}) {
+export function createParticipant({ id, name, deletedAt = null } = {}) {
   if (typeof id !== 'string' || !id.trim()) {
     throw new TypeError('Participant id is required.')
   }
@@ -78,14 +126,18 @@ export function createParticipant({ id, name } = {}) {
     throw new GameRuleError('PARTICIPANT_NAME_REQUIRED')
   }
 
-  return { id, name: normalized }
+  return {
+    id,
+    name: normalized,
+    deletedAt: normalizeParticipantDeletedAt(deletedAt),
+  }
 }
 
 /**
  * Renomeia um participante preservando todos os demais campos, inclusive o id.
- * @param {{ id: string, name: string }} participant
+ * @param {{ id: string, name: string, deletedAt?: string | null }} participant
  * @param {unknown} name
- * @returns {{ id: string, name: string }}
+ * @returns {{ id: string, name: string, deletedAt: string | null }}
  */
 export function renameParticipant(participant, name) {
   const normalized = normalizeParticipantName(name)
@@ -94,5 +146,9 @@ export function renameParticipant(participant, name) {
     throw new GameRuleError('PARTICIPANT_NAME_REQUIRED')
   }
 
-  return { ...participant, name: normalized }
+  return {
+    ...participant,
+    name: normalized,
+    deletedAt: normalizeParticipantDeletedAt(participant.deletedAt),
+  }
 }

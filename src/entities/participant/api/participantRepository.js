@@ -1,11 +1,18 @@
 import { httpClient } from '@/shared/api/httpClient'
 import { ApiError } from '@/shared/lib/errors'
 import { createId } from '@/shared/lib/id'
-import { createParticipant, validateParticipantName } from '../model/participant'
+import {
+  createParticipant,
+  isParticipantActive,
+  normalizeParticipantDeletedAt,
+  validateParticipantName,
+} from '../model/participant'
+
+const INVALID_RESPONSE_MESSAGE = 'A resposta do servidor é inválida.'
 
 /**
  * @param {unknown} value
- * @returns {{ id: string, name: string }}
+ * @returns {{ id: string, name: string, deletedAt: string | null }}
  */
 function assertParticipant(value) {
   const isObject = value !== null && typeof value === 'object'
@@ -14,10 +21,18 @@ function assertParticipant(value) {
   const hasValidName = isObject && typeof value.name === 'string'
 
   if (!hasValidId || !hasValidName) {
-    throw new ApiError('A resposta do servidor é inválida.')
+    throw new ApiError(INVALID_RESPONSE_MESSAGE)
   }
 
-  return { id: value.id, name: value.name }
+  let deletedAt
+
+  try {
+    deletedAt = normalizeParticipantDeletedAt(value.deletedAt)
+  } catch (cause) {
+    throw new ApiError(INVALID_RESPONSE_MESSAGE, null, cause)
+  }
+
+  return { id: value.id, name: value.name, deletedAt }
 }
 
 /**
@@ -28,14 +43,23 @@ export function createParticipantRepository(options = {}) {
   const client = options.client ?? httpClient
   const idFactory = options.idFactory ?? createId
 
-  async function list() {
+  async function listAll() {
     const data = await client.get('/participants')
 
     if (!Array.isArray(data)) {
-      throw new ApiError('A resposta do servidor é inválida.')
+      throw new ApiError(INVALID_RESPONSE_MESSAGE)
     }
 
     return data.map(assertParticipant)
+  }
+
+  async function list() {
+    return listAll()
+  }
+
+  async function listActive() {
+    const participants = await listAll()
+    return participants.filter(isParticipantActive)
   }
 
   /**
@@ -74,7 +98,36 @@ export function createParticipantRepository(options = {}) {
     return assertParticipant(updated)
   }
 
-  return { list, create, update }
+  /**
+   * Arquiva o participante via PATCH, sem remoção física.
+   * @param {string} id
+   * @param {string} deletedAt
+   */
+  async function archive(id, deletedAt) {
+    if (typeof id !== 'string' || !id.trim()) {
+      throw new TypeError('Participant id is required.')
+    }
+
+    if (typeof deletedAt !== 'string' || !deletedAt.trim()) {
+      throw new TypeError('An ISO date is required to archive a participant.')
+    }
+
+    let archived
+
+    try {
+      archived = await client.patch(`/participants/${id}`, { deletedAt })
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        throw new ApiError('Participante não encontrado', 404, error)
+      }
+
+      throw error
+    }
+
+    return assertParticipant(archived)
+  }
+
+  return { list, listAll, listActive, create, update, archive }
 }
 
 export const participantRepository = createParticipantRepository()

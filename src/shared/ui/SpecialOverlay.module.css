@@ -1,18 +1,19 @@
 .overlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   display: grid;
   place-items: center;
   padding: var(--space-5);
   background:
     radial-gradient(
       circle at 50% 42%,
-      rgba(160, 31, 46, 0.12),
+      rgba(160, 31, 46, 0.16),
       transparent 46%
     ),
-    rgba(4, 4, 8, 0.88);
-  backdrop-filter: blur(6px);
-  z-index: var(--z-dialog, 1100);
+    var(--color-bg-deep);
+  z-index: var(--z-announcement);
 }
 
 .overlay:focus-visible {
@@ -67,12 +68,6 @@
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-.footer {
-  margin-top: var(--space-5);
-  display: flex;
-  justify-content: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,7 +10,7 @@ import styles from './RankingPage.module.css'
  * Página de consulta do ranking de participantes por sobrevivências.
  * @param {{
  *   matchRepository: { listFinished: Function },
- *   participantRepository: { list: Function },
+ *   participantRepository: { list: Function, listAll?: Function },
  * }} props
  */
 export function RankingPage({ matchRepository, participantRepository }) {

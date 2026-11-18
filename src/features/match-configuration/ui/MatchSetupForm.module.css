@@ -27,6 +27,24 @@
   color: var(--color-text-muted);
 }
 
+.bulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+}
+
+.counter {
+  margin: 0 0 0 auto;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
 .list {
   display: flex;
   flex-direction: column;

@@ -3,7 +3,6 @@ import { AssassinsPhasePanel } from '@/features/assassins-phase/ui/AssassinsPhas
 import { DawnResultPanel } from '@/features/dawn-and-voting/ui/DawnResultPanel'
 import { VotingPanel } from '@/features/dawn-and-voting/ui/VotingPanel'
 import { DetectivesPhasePanel } from '@/features/detectives-phase/ui/DetectivesPhasePanel'
-import { FinishMatchButton } from '@/features/match-closure/ui/FinishMatchButton'
 import { SpecialAnnouncement } from '@/features/special-announcement/ui/SpecialAnnouncement'
 import { Alert } from '@/shared/ui/Alert'
 import { EmptyState } from '@/shared/ui/EmptyState'
@@ -55,77 +54,83 @@ export function LiveMatchPage({
   const isAnnouncement = Boolean(viewState.announcement)
 
   return (
-    <section className={styles.page} aria-labelledby="live-match-status-title">
-      <h2 id="live-match-status-title" className={styles.title}>
-        Partida em andamento
-      </h2>
-      <MatchStatusBar session={session} nextStepLabel={viewState.nextStepLabel} />
+    <section
+      className={styles.page}
+      data-overlay-active={isAnnouncement ? 'true' : undefined}
+      aria-labelledby={
+        isAnnouncement ? undefined : 'live-match-status-title'
+      }
+    >
+      {isAnnouncement ? null : (
+        <h2 id="live-match-status-title" className={styles.title}>
+          Partida em andamento
+        </h2>
+      )}
 
-      {session.phase !== MatchPhase.FINISHED ? (
-        <FinishMatchButton
-          confirmOpen={viewState.closure.isConfirmOpen}
-          onOpen={vmActions.openFinishConfirm}
-          onCancel={vmActions.closeFinishConfirm}
-          onConfirm={vmActions.finishManually}
-        />
-      ) : null}
+      <MatchStatusBar
+        session={session}
+        nextStepLabel={viewState.nextStepLabel}
+        overlayActive={isAnnouncement}
+        closure={{
+          isConfirmOpen: viewState.closure.isConfirmOpen,
+          onOpen: vmActions.openFinishConfirm,
+          onCancel: vmActions.closeFinishConfirm,
+          onConfirm: vmActions.finishManually,
+        }}
+      />
 
-      {viewState.error ? <Alert tone="error" title={viewState.error} /> : null}
+      {isAnnouncement ? null : (
+        <>
+          {viewState.error ? (
+            <Alert tone="error" title={viewState.error} />
+          ) : null}
 
-      {session.phase === MatchPhase.FINISHED && viewState.finalResult ? (
-        <MatchSummary
-          result={viewState.finalResult}
-          persistence={viewState.persistence}
-          onRetry={vmActions.retryPersistMatch}
-        />
-      ) : null}
+          {session.phase === MatchPhase.FINISHED && viewState.finalResult ? (
+            <MatchSummary
+              result={viewState.finalResult}
+              persistence={viewState.persistence}
+              onRetry={vmActions.retryPersistMatch}
+            />
+          ) : null}
 
-      {session.phase === MatchPhase.ASSASSINS_ACTIONS ? (
-        <AssassinsPhasePanel
-          rows={viewState.assassinRows}
-          selectedTargets={viewState.assassinTargets}
-          onChangeTarget={vmActions.setAssassinTarget}
-          onResolve={vmActions.resolveAssassinsPhase}
-        />
-      ) : null}
+          {session.phase === MatchPhase.ASSASSINS_ACTIONS ? (
+            <AssassinsPhasePanel
+              rows={viewState.assassinRows}
+              selectedTargets={viewState.assassinTargets}
+              onChangeTarget={vmActions.setAssassinTarget}
+              onResolve={vmActions.resolveAssassinsPhase}
+            />
+          ) : null}
 
-      {session.phase === MatchPhase.DETECTIVES_ACTIONS ? (
-        <DetectivesPhasePanel
-          rows={viewState.detectiveRows}
-          selectedInvestigations={viewState.investigations}
-          onChangeTarget={vmActions.setInvestigation}
-          onResolve={vmActions.resolveDetectivesPhase}
-        />
-      ) : null}
+          {session.phase === MatchPhase.DETECTIVES_ACTIONS ? (
+            <DetectivesPhasePanel
+              rows={viewState.detectiveRows}
+              selectedInvestigations={viewState.investigations}
+              onChangeTarget={vmActions.setInvestigation}
+              onResolve={vmActions.resolveDetectivesPhase}
+            />
+          ) : null}
 
-      {session.phase === MatchPhase.DAWN_RESULT ? (
-        <DawnResultPanel
-          result={viewState.dawnResult}
-          onProceed={vmActions.startVoting}
-        />
-      ) : null}
+          {session.phase === MatchPhase.DAWN_RESULT ? (
+            <DawnResultPanel
+              result={viewState.dawnResult}
+              onProceed={vmActions.startVoting}
+            />
+          ) : null}
 
-      {session.phase === MatchPhase.VOTING ? (
-        <VotingPanel
-          options={viewState.votingOptions}
-          onRegisterVote={vmActions.registerVote}
-        />
-      ) : null}
+          {session.phase === MatchPhase.VOTING ? (
+            <VotingPanel
+              options={viewState.votingOptions}
+              onRegisterVote={vmActions.registerVote}
+            />
+          ) : null}
+        </>
+      )}
 
       {isAnnouncement ? (
         <SpecialAnnouncement
           phase={session.phase}
           onDismiss={vmActions.dismissAnnouncement}
-          footerAction={
-            <FinishMatchButton
-              compact
-              renderDialog={false}
-              confirmOpen={viewState.closure.isConfirmOpen}
-              onOpen={vmActions.openFinishConfirm}
-              onCancel={vmActions.closeFinishConfirm}
-              onConfirm={vmActions.finishManually}
-            />
-          }
         />
       ) : null}
     </section>

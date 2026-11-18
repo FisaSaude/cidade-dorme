@@ -10,6 +10,7 @@ import {
   matchWinnerLabels,
   playerRoleLabels,
   playerStatusLabels,
+  uiMessages,
 } from '@/shared/config/labels'
 
 describe('labels', () => {
@@ -59,10 +60,32 @@ describe('labels', () => {
       'VOTE_ALREADY_REGISTERED',
       'MATCH_ALREADY_FINISHED',
       'INVALID_VOTE_RESULT',
+      'PARTICIPANT_IN_ACTIVE_MATCH',
+      'MATCH_NOT_FINISHED',
     ]
 
     for (const code of contractCodes) {
       expect(gameRuleErrorMessages[code]).toBeTruthy()
+    }
+  })
+
+  it('cobre mensagens de interface do delta de exclusões e status em massa', () => {
+    const expectedKeys = [
+      'participantArchiveConfirmTitle',
+      'participantArchiveConfirmDescription',
+      'participantArchiveSuccess',
+      'participantArchiveFailure',
+      'participantArchiveBlockedActiveMatch',
+      'matchDeletionConfirmTitle',
+      'matchDeletionConfirmDescription',
+      'matchDeletionSuccess',
+      'matchDeletionAlreadyRemoved',
+      'matchDeletionFailure',
+      'assassinsVictoryBulkStatus',
+    ]
+
+    for (const key of expectedKeys) {
+      expect(uiMessages[key]).toBeTruthy()
     }
   })
 

@@ -30,8 +30,8 @@ describe('participantRepository', () => {
 
     expect(client.get).toHaveBeenCalledWith('/participants')
     expect(participants).toEqual([
-      { id: 'p-1', name: 'Ana' },
-      { id: 'p-2', name: 'Bruno' },
+      { id: 'p-1', name: 'Ana', deletedAt: null },
+      { id: 'p-2', name: 'Bruno', deletedAt: null },
     ])
   })
 
@@ -45,8 +45,13 @@ describe('participantRepository', () => {
     expect(client.post).toHaveBeenCalledWith('/participants', {
       id: 'generated-id',
       name: 'Ana',
+      deletedAt: null,
     })
-    expect(participant).toEqual({ id: 'generated-id', name: 'Ana' })
+    expect(participant).toEqual({
+      id: 'generated-id',
+      name: 'Ana',
+      deletedAt: null,
+    })
   })
 
   it('edita participante via PATCH /participants/:id preservando o id', async () => {
@@ -59,7 +64,11 @@ describe('participantRepository', () => {
     expect(client.patch).toHaveBeenCalledWith('/participants/p-1', {
       name: 'Ana Maria',
     })
-    expect(participant).toEqual({ id: 'p-1', name: 'Ana Maria' })
+    expect(participant).toEqual({
+      id: 'p-1',
+      name: 'Ana Maria',
+      deletedAt: null,
+    })
   })
 
   it('valida minimamente o formato das respostas', async () => {

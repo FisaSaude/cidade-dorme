@@ -10,6 +10,7 @@ function createClient() {
   return {
     get: vi.fn(),
     put: vi.fn(),
+    delete: vi.fn(),
   }
 }
 
@@ -91,6 +92,48 @@ describe('matchRepository', () => {
     client.get.mockResolvedValue([{ id: 'match-1', status: 'FINISHED' }])
 
     await expect(repository.listFinished()).rejects.toBeInstanceOf(ApiError)
+  })
+
+  it('exclui uma partida via DELETE /matches/:id', async () => {
+    const client = createClient()
+    client.delete.mockResolvedValue(null)
+
+    const repository = createRepository(client)
+
+    await repository.deleteMatch('match-1')
+
+    expect(client.delete).toHaveBeenCalledWith('/matches/match-1')
+    expect(client.delete).toHaveBeenCalledTimes(1)
+    expect(client.put).not.toHaveBeenCalled()
+    expect(client.get).not.toHaveBeenCalled()
+  })
+
+  it('trata 204 e resposta vazia como exclusão concluída', async () => {
+    const client = createClient()
+    client.delete.mockResolvedValue(undefined)
+
+    const repository = createRepository(client)
+
+    await expect(repository.deleteMatch('match-1')).resolves.toBeUndefined()
+  })
+
+  it('propaga 404 como ApiError para o chamador tratar como já removida', async () => {
+    const client = createClient()
+    const notFound = new ApiError('O recurso solicitado não foi encontrado.', 404)
+    client.delete.mockRejectedValue(notFound)
+
+    const repository = createRepository(client)
+
+    await expect(repository.deleteMatch('missing')).rejects.toBe(notFound)
+  })
+
+  it('rejeita id inválido antes de chamar a API', async () => {
+    const client = createClient()
+    const repository = createRepository(client)
+
+    await expect(repository.deleteMatch('')).rejects.toBeInstanceOf(TypeError)
+    await expect(repository.deleteMatch(null)).rejects.toBeInstanceOf(TypeError)
+    expect(client.delete).not.toHaveBeenCalled()
   })
 
   it('rejeita a gravação de partida não finalizada antes de chamar a API', async () => {

@@ -15,6 +15,12 @@
   box-shadow: var(--shadow-inset);
 }
 
+.page[data-overlay-active='true'] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
 .title {
   margin: 0;
   font-family: var(--font-heading);

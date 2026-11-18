@@ -26,7 +26,11 @@ export {
   getNextAnnouncementPhase,
 } from './model/matchPhases'
 
-export { MatchWinner, evaluateVictory } from './model/victory'
+export {
+  MatchWinner,
+  applyAssassinsVictoryStatuses,
+  evaluateVictory,
+} from './model/victory'
 
 export {
   getAliveAssassins,

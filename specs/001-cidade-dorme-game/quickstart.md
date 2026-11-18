@@ -58,6 +58,9 @@ Resultados esperados:
 2. Tentar cadastrar “ana” ou “ Ana ”.
 3. Editar “Ana” para “Ana Maria”.
 4. Recarregar a página.
+5. Excluir “Ana Maria” e confirmar; cancelar previamente em outra tentativa.
+6. Cadastrar novamente “Ana Maria”.
+7. Iniciar uma partida com um participante e tentar excluí-lo durante a partida.
 
 **Esperado**
 
@@ -65,15 +68,27 @@ Resultados esperados:
 - O duplicado é bloqueado com mensagem explicativa.
 - A edição atualiza a lista.
 - Após recarregar, o participante permanece e mantém o mesmo ID.
+- Cancelar a exclusão não altera nada.
+- Confirmar remove o participante do cadastro ativo e das novas partidas, com mensagem de sucesso.
+- O nome “Ana Maria” pode ser reutilizado; o novo cadastro recebe outro ID.
+- A exclusão durante a partida é bloqueada com mensagem explicativa.
 
-### 4.2 Configuração inválida
+### 4.2 Configuração e seleção
 
-1. Selecionar quatro participantes e tentar iniciar.
-2. Selecionar cinco ou mais e não atribuir assassino.
-3. Selecionar cinco ou mais, atribuir um assassino e nenhum detetive.
+1. Cadastrar seis participantes e abrir a configuração.
+2. Observar a seleção e o contador inicial.
+3. Usar “Desmarcar todos” e depois “Selecionar todos”.
+4. Desmarcar um participante com papel especial, remarcá-lo e verificar o papel.
+5. Selecionar quatro participantes e tentar iniciar.
+6. Selecionar cinco ou mais e não atribuir assassino.
+7. Selecionar cinco ou mais, atribuir um assassino e nenhum detetive.
 
 **Esperado**
 
+- Todos os ativos começam selecionados; o contador mostra “6 de 6”.
+- “Desmarcar todos” zera a seleção e “Selecionar todos” restaura todos os ativos.
+- O contador acompanha cada alteração.
+- O papel especial é preservado ao desmarcar e remarcar.
 - Início bloqueado com mensagem sobre o mínimo de cinco.
 - Início bloqueado com mensagem sobre a necessidade de ao menos um assassino.
 - Configuração sem detetive é aceita; a fase dos detetives será omitida.
@@ -81,7 +96,7 @@ Resultados esperados:
 ### 4.3 Início e papéis
 
 1. Cadastrar pelo menos cinco participantes.
-2. Selecionar todos, atribuir um assassino e um detetive.
+2. Manter a seleção padrão ou usar “Selecionar todos”, atribuir um assassino e um detetive.
 3. Iniciar a partida.
 
 **Esperado**
@@ -167,13 +182,17 @@ Cenários mínimos:
 - O resultado aparece na mesma interação, sem confirmação adicional.
 - O lado vencedor é exibido claramente.
 - O turno decisivo entra em `turnCount` conforme a decisão D3.
+- Na vitória dos assassinos, todos os não assassinos aparecem como mortos no resultado.
+- Assassinos vivos permanecem vivos; assassinos já mortos permanecem mortos, sem ressurreição.
+- O histórico salvo já mostra os status finais em massa.
 
 ### 4.9 Encerramento manual
 
 1. Iniciar uma partida.
 2. Abrir “Encerrar partida”, cancelar a confirmação.
 3. Reabrir e confirmar.
-4. Repetir durante uma sobreposição.
+4. Repetir durante uma sobreposição, uma ação noturna e a votação.
+5. Observar se há apenas um botão de encerrar na tela.
 
 **Esperado**
 
@@ -181,7 +200,8 @@ Cenários mínimos:
 - Confirmar encerra sem vencedor.
 - Status vivo/morto é preservado.
 - O turno em andamento não entra em `turnCount`.
-- O botão continua acessível durante a sobreposição, sem dispensá-la por engano.
+- O botão único continua acessível acima da sobreposição, sem dispensá-la por engano.
+- O encerramento não é duplicado dentro das sobreposições ou pop-ups.
 - Não é possível encerrar duas vezes.
 
 ### 4.10 Persistência, histórico e ranking
@@ -198,14 +218,33 @@ Cenários mínimos:
 - Cada detalhe mostra participantes, papéis, status final, turnos e resultado.
 - Encerramento manual aparece como “sem vencedor”.
 - O ranking conta uma sobrevivência por participante vivo em cada partida finalizada.
-- Mortos não contam.
+- Mortos não contam; na vitória dos assassinos, apenas assassinos vivos contam.
 - Participantes com zero aparecem.
-- Empates no ranking são ordenados alfabeticamente.
+- Empates no ranking são ordenados alfabeticamente e, se necessário, por ID.
 - Partidas em andamento não aparecem.
 - Após recarregar, partidas finalizadas permanecem.
 - Editar o nome de um participante atualiza o nome no histórico e no ranking.
+- Um participante excluído continua no histórico e no ranking das partidas remanescentes, com o último nome.
 
-### 4.11 Recarregamento durante a partida
+### 4.11 Exclusão de partidas finalizadas
+
+1. Finalizar duas partidas com o mesmo participante.
+2. Abrir o histórico e excluir uma delas; cancelar em outra tentativa.
+3. Confirmar a exclusão.
+4. Abrir o ranking.
+5. Recarregar a página.
+6. Tentar excluir uma partida em andamento.
+
+**Esperado**
+
+- Cancelar mantém o histórico inalterado.
+- Confirmar remove a partida do histórico de forma definitiva.
+- O ranking é recalculado sem a contribuição da partida excluída.
+- Participantes e outras partidas não são alterados.
+- Após recarregar, a partida continua ausente.
+- Não há ação de excluir partida em andamento.
+
+### 4.12 Recarregamento durante a partida
 
 1. Iniciar uma partida e conduzir parte de um turno.
 2. Recarregar o navegador.
@@ -229,10 +268,13 @@ curl http://localhost:3001/participants
 curl "http://localhost:3001/matches?status=FINISHED&_sort=endedAt&_order=desc"
 ```
 
-- Participantes retornam apenas `id` e `name`.
-- Partidas retornam `MatchParticipant` embutidos.
+- Participantes retornam `id`, `name` e `deletedAt`.
+- Arquivar um participante via `PATCH` com `deletedAt` mantém o documento na API.
+- Excluir uma partida finalizada via `DELETE /matches/:id` a remove; repetir retorna `404` e é tratado como já removida.
+- Partidas retornam `MatchParticipant` embutidos, com status finais em massa quando aplicável.
 - Não há recursos de turnos, ações, investigações ou ranking.
 - Repetir `PUT` da mesma partida não cria duplicata.
+- Não existe `DELETE /participants/:id` no fluxo da aplicação.
 
 ### 5.2 Motor
 
@@ -241,17 +283,23 @@ curl "http://localhost:3001/matches?status=FINISHED&_sort=endedAt&_order=desc"
 - Mortos não agem, não são alvos e não votam.
 - A fase dos detetives é omitida sem detetives vivos.
 - A vitória interrompe o fluxo.
+- A vitória dos assassinos aplica a atualização em massa antes de finalizar.
+- `applyAssassinsVictoryStatuses` não ressuscita mortos nem altera papéis.
 
 ## 6. Critérios de aceite da validação
 
-- [ ] Participantes criados/editados persistem e têm nome único.
+- [ ] Participantes criados/editados persistem e têm nome único no cadastro ativo.
+- [ ] Excluir participante arquiva, preserva histórico/ranking e é bloqueado na partida ativa.
+- [ ] Configuração inicia com todos os ativos selecionados, tem ações em massa e preserva papéis.
 - [ ] Configuração exige cinco participantes e ao menos um assassino.
 - [ ] Partida sem detetive funciona com a fase omitida.
 - [ ] Sobreposições cobrem a tela e só somem com ação explícita (clique ou teclado).
 - [ ] Ações noturnas e investigações funcionam sem persistência individual.
 - [ ] Eliminações conjuntas e votação respeitam as regras.
 - [ ] Vitória é automática e interrompe o fluxo.
-- [ ] Encerramento manual pede confirmação e não atribui vencedor.
+- [ ] Na vitória dos assassinos, os status finais são atualizados em massa antes da persistência.
+- [ ] Encerramento manual pede confirmação, não atribui vencedor e usa ponto único acima das sobreposições.
 - [ ] Histórico e ranking consideram apenas partidas finalizadas.
+- [ ] Partidas finalizadas podem ser excluídas e o ranking é recalculado.
 - [ ] Recarregar perde a partida em andamento sem criar órfãos.
 - [ ] `npm test`, `npm run lint` e `npm run build` passam.

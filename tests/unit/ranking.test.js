@@ -167,4 +167,111 @@ describe('rankParticipants', () => {
       ['Carla', 0],
     ])
   })
+
+  it('inclui arquivados referenciados por partidas finalizadas e omite arquivados sem partidas', () => {
+    const participants = [
+      { id: 'p-1', name: 'Ana', deletedAt: null },
+      {
+        id: 'p-2',
+        name: 'Bruno',
+        deletedAt: '2026-01-10T00:00:00.000Z',
+      },
+      {
+        id: 'p-3',
+        name: 'Carla',
+        deletedAt: '2026-01-10T00:00:00.000Z',
+      },
+    ]
+    const matches = [
+      makeMatchWithParticipants('m-1', [
+        { participantId: 'p-1', status: 'DEAD' },
+        { participantId: 'p-2', status: 'ALIVE' },
+      ]),
+    ]
+
+    const rows = rankParticipants(participants, matches)
+
+    expect(rows).toEqual([
+      { participantId: 'p-2', name: 'Bruno', survivalCount: 1 },
+      { participantId: 'p-1', name: 'Ana', survivalCount: 0 },
+    ])
+  })
+
+  it('omite arquivado referenciado apenas por partidas em andamento', () => {
+    const participants = [
+      { id: 'p-1', name: 'Ana', deletedAt: null },
+      {
+        id: 'p-2',
+        name: 'Bruno',
+        deletedAt: '2026-01-10T00:00:00.000Z',
+      },
+    ]
+    const matches = [
+      makeMatch({
+        id: 'm-running',
+        status: 'IN_PROGRESS',
+        endedAt: null,
+        participants: [
+          makeMatchParticipant({
+            index: 1,
+            id: 'running-mp-1',
+            participantId: 'p-2',
+            status: 'ALIVE',
+          }),
+        ],
+      }),
+    ]
+
+    const rows = rankParticipants(participants, matches)
+
+    expect(rows).toEqual([
+      { participantId: 'p-1', name: 'Ana', survivalCount: 0 },
+    ])
+  })
+
+  it('conta apenas assassinos vivos na vitória dos assassinos', () => {
+    const participants = [
+      { id: 'p-1', name: 'Ana' },
+      { id: 'p-2', name: 'Bruno' },
+      { id: 'p-3', name: 'Carla' },
+    ]
+    const matches = [
+      makeMatchWithParticipants(
+        'm-assassins',
+        [
+          { participantId: 'p-1', status: 'ALIVE' },
+          { participantId: 'p-2', status: 'DEAD' },
+          { participantId: 'p-3', status: 'DEAD' },
+        ],
+        { winner: 'ASSASSINS' },
+      ),
+    ]
+    matches[0].participants[0].role = 'ASSASSIN'
+    matches[0].participants[1].role = 'ASSASSIN'
+    matches[0].participants[2].role = 'INNOCENT'
+
+    const rows = rankParticipants(participants, matches)
+
+    expect(rows).toEqual([
+      { participantId: 'p-1', name: 'Ana', survivalCount: 1 },
+      { participantId: 'p-2', name: 'Bruno', survivalCount: 0 },
+      { participantId: 'p-3', name: 'Carla', survivalCount: 0 },
+    ])
+  })
+
+  it('desempata por participantId quando nome e sobrevivências são iguais', () => {
+    const participants = [
+      { id: 'p-b', name: 'Ana' },
+      { id: 'p-a', name: 'Ana' },
+      { id: 'p-c', name: 'Ana' },
+    ]
+
+    const rows = rankParticipants(participants, [])
+
+    expect(rows.map((row) => row.participantId)).toEqual([
+      'p-a',
+      'p-b',
+      'p-c',
+    ])
+  })
 })

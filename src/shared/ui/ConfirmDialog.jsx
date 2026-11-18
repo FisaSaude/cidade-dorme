@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from './Button'
 import styles from './ui.module.css'
@@ -22,6 +22,30 @@ export function ConfirmDialog({
   const generatedId = useId()
   const titleId = `${generatedId}-title`
   const descriptionId = `${generatedId}-description`
+  const dialogRef = useRef(null)
+
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') {
+      return undefined
+    }
+
+    const previousFocus = document.activeElement
+    const confirmButton = dialogRef.current?.querySelector(
+      '[data-autofocus="true"]',
+    )
+
+    confirmButton?.focus()
+
+    return () => {
+      if (
+        previousFocus &&
+        typeof previousFocus.focus === 'function' &&
+        previousFocus.ownerDocument?.contains(previousFocus)
+      ) {
+        previousFocus.focus()
+      }
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) {
@@ -50,6 +74,7 @@ export function ConfirmDialog({
     <div
       className={styles.overlay}
       role="presentation"
+      data-layer="confirm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onCancel?.()
@@ -57,6 +82,7 @@ export function ConfirmDialog({
       }}
     >
       <div
+        ref={dialogRef}
         className={[styles.dialog, className].filter(Boolean).join(' ')}
         role="dialog"
         aria-modal="true"
@@ -79,7 +105,7 @@ export function ConfirmDialog({
             variant={danger ? 'danger' : 'primary'}
             onClick={onConfirm}
             disabled={confirmDisabled}
-            autoFocus
+            data-autofocus="true"
           >
             {confirmLabel}
           </Button>

@@ -112,6 +112,10 @@ describe('Resultado e persistência da partida (integração)', () => {
     expect(await screen.findByText('Vitória: Assassinos')).toBeTruthy()
     expect(screen.getByText('Resumo da partida')).toBeTruthy()
     expect(screen.getByText('Carla')).toBeTruthy()
+    expect(screen.getByText('Eliminação em massa')).toBeTruthy()
+    expect(
+      screen.getByText(/Todos os não assassinos foram eliminados/),
+    ).toBeTruthy()
 
     expect(await screen.findByText('Partida salva no histórico.')).toBeTruthy()
     expect(saveFinishedMatch).toHaveBeenCalledTimes(1)
@@ -121,6 +125,25 @@ describe('Resultado e persistência da partida (integração)', () => {
     expect(savedMatch.winner).toBe('ASSASSINS')
     expect(savedMatch.endedAt).toBe(STARTED_AT)
     expect(savedMatch.participants).toHaveLength(5)
+
+    const byParticipant = Object.fromEntries(
+      savedMatch.participants.map((participant) => [
+        participant.participantId,
+        participant,
+      ]),
+    )
+
+    expect(byParticipant['p-1'].status).toBe('ALIVE')
+    expect(byParticipant['p-2'].status).toBe('ALIVE')
+    expect(byParticipant['p-3'].status).toBe('DEAD')
+    expect(byParticipant['p-4']).toMatchObject({
+      status: 'DEAD',
+      eliminatedAt: { turn: 1, phase: 'NIGHT' },
+    })
+    expect(byParticipant['p-5']).toMatchObject({
+      status: 'DEAD',
+      eliminatedAt: { turn: 1, phase: 'NIGHT' },
+    })
   })
 
   it('não grava nada antes do encerramento', async () => {
