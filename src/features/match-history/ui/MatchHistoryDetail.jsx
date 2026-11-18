@@ -1,4 +1,4 @@
-import { MatchOutcomeBadge } from '@/entities/match/ui/MatchOutcomeBadge'
+import { MatchOutcomeBadge } from '@/entities/match'
 import { Button } from '@/shared/ui/Button'
 import styles from './MatchHistory.module.css'
 

@@ -1,4 +1,5 @@
 import { useEffect, useId } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 import styles from './ui.module.css'
 
@@ -41,11 +42,11 @@ export function ConfirmDialog({
     }
   }, [open, onCancel])
 
-  if (!open) {
+  if (!open || typeof document === 'undefined') {
     return null
   }
 
-  return (
+  const dialog = (
     <div
       className={styles.overlay}
       role="presentation"
@@ -86,6 +87,8 @@ export function ConfirmDialog({
       </div>
     </div>
   )
+
+  return createPortal(dialog, document.body)
 }
 
 export default ConfirmDialog

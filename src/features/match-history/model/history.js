@@ -1,4 +1,4 @@
-import { MatchStatus } from '@/entities/match/model/matchStatus'
+import { MatchStatus } from '@/entities/match'
 import {
   matchClosureReasonLabels,
   matchWinnerLabels,

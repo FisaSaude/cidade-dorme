@@ -1,4 +1,4 @@
-import { MatchPhase } from '@/entities/match/model/matchPhases'
+import { MatchPhase } from '@/entities/match'
 import { AssassinsPhasePanel } from '@/features/assassins-phase/ui/AssassinsPhasePanel'
 import { DawnResultPanel } from '@/features/dawn-and-voting/ui/DawnResultPanel'
 import { VotingPanel } from '@/features/dawn-and-voting/ui/VotingPanel'

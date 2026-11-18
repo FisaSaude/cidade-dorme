@@ -1,4 +1,4 @@
-import { MatchPhase } from '@/entities/match/model/matchPhases'
+import { MatchPhase } from '@/entities/match'
 
 export const ANNOUNCEMENT_TEXT = Object.freeze({
   [MatchPhase.TURN_START]: 'Cidade Dorme',

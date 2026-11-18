@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { validateParticipantName } from '@/entities/participant/model/participant'
+import { validateParticipantName } from '@/entities/participant'
 import {
   EMPTY_PARTICIPANT_FORM,
   createParticipantForm,

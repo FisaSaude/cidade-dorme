@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { validateMatchConfiguration } from '@/entities/match/model/matchConfiguration'
+import { validateMatchConfiguration } from '@/entities/match'
 import {
   createMatchSetupState,
   getMatchSetupRows,

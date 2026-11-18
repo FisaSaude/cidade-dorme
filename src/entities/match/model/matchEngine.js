@@ -1,9 +1,9 @@
-import { PlayerRole } from '@/entities/match-participant/model/playerRole'
 import {
   createMatchParticipant,
   eliminateMatchParticipant,
   isMatchParticipantAlive,
-} from '@/entities/match-participant/model/matchParticipant'
+  PlayerRole,
+} from '@/entities/match-participant'
 import { GameRuleError } from '@/shared/lib/errors'
 import { validateMatchConfiguration } from './matchConfiguration'
 import { EliminationPhase, getNextAnnouncementPhase, MatchPhase } from './matchPhases'

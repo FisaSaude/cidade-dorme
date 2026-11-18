@@ -59,6 +59,14 @@ describe('matchParticipant', () => {
     expect(eliminated.role).toBe(PlayerRole.ASSASSIN)
     expect(isMatchParticipantAlive(eliminated)).toBe(false)
     expect(matchParticipant.status).toBe(PlayerStatus.ALIVE)
+
+    const roleDescriptor = Object.getOwnPropertyDescriptor(eliminated, 'role')
+    expect(roleDescriptor?.writable).toBe(false)
+    expect(roleDescriptor?.configurable).toBe(false)
+    expect(() => {
+      eliminated.role = PlayerRole.INNOCENT
+    }).toThrow()
+    expect(eliminated.role).toBe(PlayerRole.ASSASSIN)
   })
 
   it('garante status DEAD se e somente se eliminatedAt não for nulo', () => {

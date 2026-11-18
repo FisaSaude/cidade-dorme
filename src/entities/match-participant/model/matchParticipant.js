@@ -43,8 +43,21 @@ export function validateEliminatedAt(eliminatedAt) {
   return { turn: /** @type {number} */ (turn), phase: /** @type {'NIGHT' | 'VOTE'} */ (phase) }
 }
 
+function withImmutableRole(matchParticipant) {
+  const { role } = matchParticipant
+
+  Object.defineProperty(matchParticipant, 'role', {
+    value: role,
+    enumerable: true,
+    writable: false,
+    configurable: false,
+  })
+
+  return matchParticipant
+}
+
 /**
- * Cria um participante de partida vivo, com papel imutável.
+ * Cria um participante de partida vivo, com papel imutǭvel.
  * @param {{ id: string, participantId: string, role?: 'INNOCENT' | 'ASSASSIN' | 'DETECTIVE' }} input
  * @returns {MatchParticipant}
  */
@@ -61,22 +74,13 @@ export function createMatchParticipant({ id, participantId, role = PlayerRole.IN
     throw new TypeError(`Invalid player role: ${String(role)}`)
   }
 
-  const matchParticipant = {
+  return withImmutableRole({
     id,
     participantId,
     role,
     status: PlayerStatus.ALIVE,
     eliminatedAt: null,
-  }
-
-  Object.defineProperty(matchParticipant, 'role', {
-    value: role,
-    enumerable: true,
-    writable: false,
-    configurable: false,
   })
-
-  return matchParticipant
 }
 
 /**
@@ -101,9 +105,9 @@ export function eliminateMatchParticipant(matchParticipant, eliminatedAt) {
 
   const validEliminatedAt = validateEliminatedAt(eliminatedAt)
 
-  return {
+  return withImmutableRole({
     ...matchParticipant,
     status: PlayerStatus.DEAD,
     eliminatedAt: validEliminatedAt,
-  }
+  })
 }

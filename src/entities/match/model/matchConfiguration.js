@@ -1,4 +1,4 @@
-import { PLAYER_ROLE_VALUES, PlayerRole } from '@/entities/match-participant/model/playerRole'
+import { PLAYER_ROLE_VALUES, PlayerRole } from '@/entities/match-participant'
 import { GameRuleError } from '@/shared/lib/errors'
 
 export const MIN_PARTICIPANTS = 5

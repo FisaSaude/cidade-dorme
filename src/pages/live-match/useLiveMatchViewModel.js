@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
-import { MatchPhase } from '@/entities/match/model/matchPhases'
 import {
   getAliveParticipants,
   getDeadParticipants,
-} from '@/entities/match/model/matchSession'
-import { MatchStatus } from '@/entities/match/model/matchStatus'
+  MatchPhase,
+  MatchStatus,
+} from '@/entities/match'
 import { getGameRuleErrorMessage } from '@/shared/config/labels'
 import { formatDateTimePtBr } from '@/shared/lib/date'
 import { ApiError, GameRuleError } from '@/shared/lib/errors'

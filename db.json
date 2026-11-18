@@ -25,5 +25,245 @@
       "name": "Edson"
     }
   ],
-  "matches": []
+  "matches": [
+    {
+      "id": "28cb23ab-769d-4dd6-9078-fd98975ecb6d",
+      "status": "FINISHED",
+      "closureReason": "VICTORY",
+      "winner": "ASSASSINS",
+      "startedAt": "2026-11-16T23:10:54.409Z",
+      "endedAt": "2026-11-16T23:11:40.952Z",
+      "turnCount": 2,
+      "participants": [
+        {
+          "id": "4bd721ac-b0ab-41f5-8c76-756750d07f36",
+          "participantId": "7b864e36-108e-40ea-9f5a-b4eeda80528d",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "VOTE"
+          }
+        },
+        {
+          "id": "9ff863ed-34a5-4fc8-99a3-8e97db9ca6fc",
+          "participantId": "b1e2e7b3-5840-4880-8055-2734f6e4a88e",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "NIGHT"
+          }
+        },
+        {
+          "id": "39fa918c-e086-4503-b4ff-035e4f3ef268",
+          "participantId": "7e9d6e6f-7e91-49bb-bb14-103d7417fa2d",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 2,
+            "phase": "VOTE"
+          }
+        },
+        {
+          "id": "384209ce-f5be-4c6f-9696-8e056723386b",
+          "participantId": "45aa406a-5a4d-43d3-97a9-451213262073",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 2,
+            "phase": "NIGHT"
+          }
+        },
+        {
+          "id": "3b62685e-426c-4e0a-b30e-e45abd28fa83",
+          "participantId": "2bd8e550-eb60-4845-b71e-07b4a1e99df1",
+          "role": "DETECTIVE",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "ba158488-cf75-49c9-846c-f08dccd3b3bb",
+          "participantId": "f1d10b58-ed97-43b8-9eb4-363a3e69fbab",
+          "role": "ASSASSIN",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        }
+      ]
+    },
+    {
+      "id": "8f385152-f614-42b6-805e-f760960b9e63",
+      "status": "FINISHED",
+      "closureReason": "MANUAL",
+      "winner": null,
+      "startedAt": "2026-11-16T23:15:39.991Z",
+      "endedAt": "2026-11-16T23:15:54.986Z",
+      "turnCount": 0,
+      "participants": [
+        {
+          "id": "eaec1a1a-866f-47d7-9ce3-57be7ae0c85e",
+          "participantId": "7b864e36-108e-40ea-9f5a-b4eeda80528d",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "e3bf6190-7f64-4f7d-9fdb-d6a21ad03492",
+          "participantId": "b1e2e7b3-5840-4880-8055-2734f6e4a88e",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "NIGHT"
+          }
+        },
+        {
+          "id": "94bb0942-052e-4100-a139-eee9a681ec82",
+          "participantId": "7e9d6e6f-7e91-49bb-bb14-103d7417fa2d",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "90b7c9e0-aaaf-4963-bcb5-0fb009395481",
+          "participantId": "45aa406a-5a4d-43d3-97a9-451213262073",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "8bb7f7a6-6fa9-4caa-929d-b4bd4627937b",
+          "participantId": "2bd8e550-eb60-4845-b71e-07b4a1e99df1",
+          "role": "DETECTIVE",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "193d0775-e702-44b3-ba17-a55aaeea9ee4",
+          "participantId": "f1d10b58-ed97-43b8-9eb4-363a3e69fbab",
+          "role": "ASSASSIN",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        }
+      ]
+    },
+    {
+      "id": "90a220f3-8716-4601-ae89-f31958747ee6",
+      "status": "FINISHED",
+      "closureReason": "VICTORY",
+      "winner": "INNOCENTS",
+      "startedAt": "2026-11-17T19:52:11.990Z",
+      "endedAt": "2026-11-17T19:52:28.628Z",
+      "turnCount": 1,
+      "participants": [
+        {
+          "id": "d212c86d-5686-43ee-b24e-09dd664942b0",
+          "participantId": "7b864e36-108e-40ea-9f5a-b4eeda80528d",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "NIGHT"
+          }
+        },
+        {
+          "id": "02cb3e33-007a-43bd-81b2-b830a9626aeb",
+          "participantId": "b1e2e7b3-5840-4880-8055-2734f6e4a88e",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "64fab0d0-84ef-4424-82bf-1393378b48bf",
+          "participantId": "7e9d6e6f-7e91-49bb-bb14-103d7417fa2d",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "0ecd6d6e-2f6d-4ae5-ad51-3044c59991b5",
+          "participantId": "45aa406a-5a4d-43d3-97a9-451213262073",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "3a137310-9a66-4bde-b7e6-8e39dfe6922d",
+          "participantId": "2bd8e550-eb60-4845-b71e-07b4a1e99df1",
+          "role": "ASSASSIN",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "VOTE"
+          }
+        },
+        {
+          "id": "6d65816e-805b-4613-bf31-436fae95df47",
+          "participantId": "f1d10b58-ed97-43b8-9eb4-363a3e69fbab",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        }
+      ]
+    },
+    {
+      "id": "6a679d23-24f2-4c83-951a-728a9cdd8a8d",
+      "status": "FINISHED",
+      "closureReason": "VICTORY",
+      "winner": "INNOCENTS",
+      "startedAt": "2026-11-17T20:17:15.424Z",
+      "endedAt": "2026-11-17T20:17:30.002Z",
+      "turnCount": 1,
+      "participants": [
+        {
+          "id": "a59d49cd-f486-4cbd-ac0f-8cd300d5e506",
+          "participantId": "7b864e36-108e-40ea-9f5a-b4eeda80528d",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "2baf18cf-9493-4ca4-9a93-09e37a642d94",
+          "participantId": "b1e2e7b3-5840-4880-8055-2734f6e4a88e",
+          "role": "INNOCENT",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "NIGHT"
+          }
+        },
+        {
+          "id": "1a9fae37-09ea-4a9d-a117-403b65eef750",
+          "participantId": "7e9d6e6f-7e91-49bb-bb14-103d7417fa2d",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "e70ce9a6-5430-4844-9211-0a1bf540885c",
+          "participantId": "45aa406a-5a4d-43d3-97a9-451213262073",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "29b34403-a180-48ea-b60a-984fa2b2d742",
+          "participantId": "2bd8e550-eb60-4845-b71e-07b4a1e99df1",
+          "role": "INNOCENT",
+          "status": "ALIVE",
+          "eliminatedAt": null
+        },
+        {
+          "id": "ff97ed3d-51ee-43c3-b06a-04311a011ab5",
+          "participantId": "f1d10b58-ed97-43b8-9eb4-363a3e69fbab",
+          "role": "ASSASSIN",
+          "status": "DEAD",
+          "eliminatedAt": {
+            "turn": 1,
+            "phase": "VOTE"
+          }
+        }
+      ]
+    }
+  ]
 }

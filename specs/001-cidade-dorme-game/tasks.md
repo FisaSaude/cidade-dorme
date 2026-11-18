@@ -435,7 +435,7 @@ Tarefa: "US8 — implementar src/features/participant-ranking/model/ranking.js"
 
 ## Phase 13: Convergence
 
-- [ ] T113 Garantir que o diálogo de confirmação do encerramento manual fique acima da sobreposição especial durante qualquer anúncio, corrigindo o empilhamento (`z-index` dedicado ou portal/renderização no `footerAction`) e adicionando teste de regressão que abra e confirme o encerramento a partir da sobreposição per FR-052, FR-053, US6/AC1, plan: §6.2 (partial)
-- [ ] T114 Criar `src/entities/match-participant/index.js` e substituir os imports profundos entre slices de entidades em `src/entities`, `src/features`, `src/pages` e `src/widgets` pelos índices públicos correspondentes per plan: §1.1 (partial)
-- [ ] T115 Preservar a imutabilidade da propriedade `role` também em `eliminateMatchParticipant` e ampliar `tests/unit/matchParticipant.test.js` para verificar o descritor após a eliminação per T017 (partial)
-- [ ] T116 Corrigir `tests/integration/nightPhases.test.jsx` para cobrir de fato a omissão da fase dos detetives sem detetive vivo e a ausência de executores/alvos mortos per T052 (partial)
+- [X] T113 Garantir que o diálogo de confirmação do encerramento manual fique acima da sobreposição especial durante qualquer anúncio, corrigindo o empilhamento (`z-index` dedicado ou portal/renderização no `footerAction`) e adicionando teste de regressão que abra e confirme o encerramento a partir da sobreposição per FR-052, FR-053, US6/AC1, plan: §6.2 (partial)
+- [X] T114 Criar `src/entities/match-participant/index.js` e substituir os imports profundos entre slices de entidades em `src/entities`, `src/features`, `src/pages` e `src/widgets` pelos índices públicos correspondentes per plan: §1.1 (partial)
+- [X] T115 Preservar a imutabilidade da propriedade `role` também em `eliminateMatchParticipant` e ampliar `tests/unit/matchParticipant.test.js` para verificar o descritor após a eliminação per T017 (partial)
+- [X] T116 Corrigir `tests/integration/nightPhases.test.jsx` para cobrir de fato a omissão da fase dos detetives sem detetive vivo e a ausência de executores/alvos mortos per T052 (partial)

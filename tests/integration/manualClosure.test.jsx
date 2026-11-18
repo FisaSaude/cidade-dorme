@@ -112,6 +112,12 @@ describe('Encerramento manual (integração)', () => {
     await user.click(within(overlay).getByRole('button', { name: 'Encerrar partida' }))
     expect(await screen.findByText('Encerrar partida manualmente?')).toBeTruthy()
 
+    const confirmDialog = screen.getByRole('dialog', {
+      name: 'Encerrar partida manualmente?',
+    })
+    expect(document.body.contains(confirmDialog)).toBe(true)
+    expect(overlay.contains(confirmDialog)).toBe(false)
+
     expect(screen.getByRole('dialog', { name: 'Cidade Dorme' })).toBeTruthy()
 
     await user.click(screen.getByRole('button', { name: 'Encerrar agora' }))

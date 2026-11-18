@@ -1,4 +1,4 @@
-import { PlayerStatus } from '@/entities/match-participant/model/playerStatus'
+import { PlayerStatus } from '@/entities/match-participant'
 import { matchPhaseLabels } from '@/shared/config/labels'
 import styles from './MatchStatusBar.module.css'
 

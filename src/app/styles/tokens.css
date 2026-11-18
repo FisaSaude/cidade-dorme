@@ -51,6 +51,7 @@
 
   --z-overlay: 1000;
   --z-dialog: 1100;
+  --z-dialog-elevated: 1200;
 
   --transition-fast: 150ms ease;
   --transition-slow: 400ms ease;

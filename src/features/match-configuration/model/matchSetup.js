@@ -2,7 +2,7 @@ import {
   isPlayerRole,
   PLAYER_ROLE_VALUES,
   PlayerRole,
-} from '@/entities/match-participant/model/playerRole'
+} from '@/entities/match-participant'
 import { playerRoleLabels } from '@/shared/config/labels'
 
 export const MATCH_SETUP_ROLE_OPTIONS = Object.freeze(

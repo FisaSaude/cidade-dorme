@@ -1,4 +1,4 @@
-import { ParticipantName } from '@/entities/participant/ui/ParticipantName'
+import { ParticipantName } from '@/entities/participant'
 import { Button } from '@/shared/ui/Button'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { LoadingState } from '@/shared/ui/LoadingState'

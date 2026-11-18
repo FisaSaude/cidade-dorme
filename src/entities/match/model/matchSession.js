@@ -1,5 +1,4 @@
-import { PlayerRole } from '@/entities/match-participant/model/playerRole'
-import { PlayerStatus } from '@/entities/match-participant/model/playerStatus'
+import { PlayerRole, PlayerStatus } from '@/entities/match-participant'
 
 /**
  * @param {unknown} session

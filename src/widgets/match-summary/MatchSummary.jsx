@@ -1,4 +1,4 @@
-import { MatchOutcomeBadge } from '@/entities/match/ui/MatchOutcomeBadge'
+import { MatchOutcomeBadge } from '@/entities/match'
 import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { LoadingState } from '@/shared/ui/LoadingState'

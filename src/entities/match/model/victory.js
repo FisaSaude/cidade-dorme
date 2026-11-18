@@ -1,5 +1,4 @@
-import { PlayerRole } from '@/entities/match-participant/model/playerRole'
-import { PlayerStatus } from '@/entities/match-participant/model/playerStatus'
+import { PlayerRole, PlayerStatus } from '@/entities/match-participant'
 
 /**
  * Resultados possíveis de uma partida decidida por vitória.

@@ -1,5 +1,5 @@
-import { MatchStatus } from '@/entities/match/model/matchStatus'
-import { PlayerStatus } from '@/entities/match-participant/model/playerStatus'
+import { MatchStatus } from '@/entities/match'
+import { PlayerStatus } from '@/entities/match-participant'
 
 const NAME_COLLATOR = new Intl.Collator('pt-BR', { sensitivity: 'base' })
 
