@@ -39,11 +39,6 @@ Os documentos utilizados durante o desenvolvimento seguem a organização do Git
 - **Plano:** `specs/001-cidade-dorme/plan.md`
 - **Tarefas:** `specs/001-cidade-dorme/tasks.md`
 
-**Divisão das tarefas:**
-- Integrante 1: [Responsabilidade].
-- Integrante 2: [Responsabilidade].
-- Integrante 3: [Responsabilidade].
-
 ## 5. Reflexão
 
 **Que decisão o agente teria tomado sozinho e a spec evitou?**
